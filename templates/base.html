@@ -1,0 +1,148 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Hospital Management System{% endblock %}</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            200: '#bfdbfe',
+                            300: '#93c5fd',
+                            400: '#60a5fa',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                        },
+                        hospital: {
+                            light: '#e0f2fe',
+                            DEFAULT: '#0ea5e9',
+                            dark: '#0369a1',
+                        }
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-out',
+                        'slide-in': 'slideIn 0.3s ease-out',
+                        'pulse-slow': 'pulse 3s infinite',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Alpine.js for interactivity -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <!-- Chart.js for analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Custom styles -->
+    <style>
+        /* Hide elements with x-cloak until Alpine.js loads */
+        [x-cloak] { display: none !important; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .animate-fade-in { animation: fadeIn 0.5s ease-out; }
+        .animate-slide-in { animation: slideIn 0.3s ease-out; }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Gradient backgrounds */
+        .gradient-primary { background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); }
+        .gradient-success { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
+        .gradient-warning { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
+        .gradient-danger { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); }
+    </style>
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="h-full bg-gray-50" x-data="{ sidebarOpen: true, notificationsOpen: false, profileOpen: false }">
+    {% if user.is_authenticated %}
+    <div class="min-h-full flex">
+        <!-- Sidebar -->
+        {% include 'components/sidebar.html' %}
+
+        <!-- Main content area -->
+        <div class="flex-1 flex flex-col" :class="sidebarOpen ? 'ml-64' : 'ml-20'" style="transition: margin-left 0.3s ease;">
+            <!-- Top navbar -->
+            {% include 'components/navbar.html' %}
+
+            <!-- Main content -->
+            <main class="flex-1 p-6 overflow-auto">
+                <!-- Messages -->
+                {% if messages %}
+                <div class="mb-6 space-y-2">
+                    {% for message in messages %}
+                    <div x-data="{ show: true }" x-show="show" x-transition
+                         class="p-4 rounded-lg flex items-center justify-between {{ message.tags }} animate-fade-in">
+                        <div class="flex items-center">
+                            {% if 'success' in message.tags %}
+                            <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            {% elif 'error' in message.tags %}
+                            <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                            </svg>
+                            {% else %}
+                            <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                            </svg>
+                            {% endif %}
+                            <span>{{ message }}</span>
+                        </div>
+                        <button @click="show = false" class="ml-4 hover:opacity-70">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                            </svg>
+                        </button>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- Page content -->
+                {% block content %}{% endblock %}
+            </main>
+
+            <!-- Footer -->
+            <footer class="bg-white border-t border-gray-200 py-4 px-6">
+                <div class="flex items-center justify-between text-sm text-gray-500">
+                    <p>Hospital Management System</p>
+                    <p>Powered by AI</p>
+                </div>
+            </footer>
+        </div>
+    </div>
+    {% else %}
+    <!-- Non-authenticated layout -->
+    <div class="min-h-full">
+        {% block auth_content %}{% endblock %}
+    </div>
+    {% endif %}
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

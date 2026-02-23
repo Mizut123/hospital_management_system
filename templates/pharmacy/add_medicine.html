@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+
+{% block title %}Add Medicine - HMS{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto space-y-6 animate-fade-in">
+    <!-- Back Button -->
+    <a href="{% url 'pharmacy:medicines' %}" class="inline-flex items-center text-gray-600 hover:text-gray-800">
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+        </svg>
+        Back to Medicines
+    </a>
+
+    <!-- Header -->
+    <div>
+        <h1 class="text-2xl font-bold text-gray-800">Add New Medicine</h1>
+        <p class="text-gray-500 mt-1">Add a new medicine to the catalog</p>
+    </div>
+
+    <!-- Form -->
+    <form method="post" class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-6">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+        <div class="p-4 bg-red-50 border border-red-200 rounded-lg">
+            <div class="flex items-center">
+                <svg class="w-5 h-5 text-red-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <span class="text-red-700">{{ form.non_field_errors }}</span>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Name -->
+        <div>
+            <label for="id_name" class="block text-sm font-medium text-gray-700 mb-1">Medicine Name *</label>
+            {{ form.name }}
+            {% if form.name.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.name.errors.0 }}</p>
+            {% endif %}
+        </div>
+
+        <!-- Generic Name -->
+        <div>
+            <label for="id_generic_name" class="block text-sm font-medium text-gray-700 mb-1">Generic Name</label>
+            {{ form.generic_name }}
+            <p class="mt-1 text-xs text-gray-500">The non-proprietary name of the medicine</p>
+            {% if form.generic_name.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.generic_name.errors.0 }}</p>
+            {% endif %}
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+            <!-- Category -->
+            <div>
+                <label for="id_category" class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                {{ form.category }}
+                {% if form.category.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.category.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Form/Type -->
+            <div>
+                <label for="id_form" class="block text-sm font-medium text-gray-700 mb-1">Form</label>
+                {{ form.form }}
+                <p class="mt-1 text-xs text-gray-500">e.g., Tablet, Capsule, Syrup, Injection</p>
+                {% if form.form.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.form.errors.0 }}</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+            <!-- Strength -->
+            <div>
+                <label for="id_strength" class="block text-sm font-medium text-gray-700 mb-1">Strength</label>
+                {{ form.strength }}
+                <p class="mt-1 text-xs text-gray-500">e.g., 500mg, 10mg/5ml</p>
+                {% if form.strength.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.strength.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Unit Price -->
+            <div>
+                <label for="id_unit_price" class="block text-sm font-medium text-gray-700 mb-1">Unit Price ($)</label>
+                {{ form.unit_price }}
+                {% if form.unit_price.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.unit_price.errors.0 }}</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Manufacturer -->
+        <div>
+            <label for="id_manufacturer" class="block text-sm font-medium text-gray-700 mb-1">Manufacturer</label>
+            {{ form.manufacturer }}
+            {% if form.manufacturer.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.manufacturer.errors.0 }}</p>
+            {% endif %}
+        </div>
+
+        <!-- Description -->
+        <div>
+            <label for="id_description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+            {{ form.description }}
+            {% if form.description.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.description.errors.0 }}</p>
+            {% endif %}
+        </div>
+
+        <!-- Requires Prescription -->
+        <div class="flex items-center">
+            {{ form.requires_prescription }}
+            <label for="id_requires_prescription" class="ml-2 text-sm text-gray-700">Requires prescription</label>
+        </div>
+
+        <!-- Active Status -->
+        <div class="flex items-center">
+            {{ form.is_active }}
+            <label for="id_is_active" class="ml-2 text-sm text-gray-700">Active (available for prescriptions)</label>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex items-center justify-end space-x-4 pt-4 border-t border-gray-100">
+            <a href="{% url 'pharmacy:medicines' %}" class="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                Cancel
+            </a>
+            <button type="submit" class="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
+                Add Medicine
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

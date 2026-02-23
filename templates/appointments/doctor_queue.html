@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}My Patient Queue - HMS{% endblock %}
+
+{% block content %}
+<div class="space-y-6 animate-fade-in">
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-800">My Patient Queue</h1>
+            <p class="text-gray-500 mt-1">{{ today|date:"l, F d, Y" }}</p>
+        </div>
+        <a href="{% url 'appointments:schedule' %}" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium flex items-center">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+            </svg>
+            View Schedule
+        </a>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="bg-orange-50 rounded-xl border border-orange-100 p-4 flex items-center">
+            <div class="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center mr-4">
+                <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+            </div>
+            <div>
+                <p class="text-sm text-orange-600">Waiting</p>
+                <p class="text-2xl font-bold text-orange-700">{{ queue|length }}</p>
+            </div>
+        </div>
+        <div class="bg-blue-50 rounded-xl border border-blue-100 p-4 flex items-center">
+            <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mr-4">
+                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                </svg>
+            </div>
+            <div>
+                <p class="text-sm text-blue-600">In Progress</p>
+                <p class="text-2xl font-bold text-blue-700">0</p>
+            </div>
+        </div>
+        <div class="bg-green-50 rounded-xl border border-green-100 p-4 flex items-center">
+            <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mr-4">
+                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+            </div>
+            <div>
+                <p class="text-sm text-green-600">Completed Today</p>
+                <p class="text-2xl font-bold text-green-700">0</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Patient Queue -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100">
+        <div class="px-6 py-4 border-b border-gray-100">
+            <h2 class="text-lg font-semibold text-gray-800">Patients Waiting</h2>
+        </div>
+
+        {% if queue %}
+        <div class="divide-y divide-gray-100">
+            {% for appointment in queue %}
+            <div class="p-6 hover:bg-gray-50 transition-colors flex items-center">
+                <!-- Queue Number -->
+                <div class="flex-shrink-0 w-16 h-16 rounded-xl flex flex-col items-center justify-center mr-6
+                    {% if appointment.status == 'checked_in' %}bg-orange-500 text-white
+                    {% elif appointment.status == 'in_progress' %}bg-blue-500 text-white
+                    {% elif appointment.status == 'completed' %}bg-green-500 text-white
+                    {% else %}bg-gray-200 text-gray-600{% endif %}">
+                    <span class="text-xs font-medium opacity-80">Queue</span>
+                    <span class="text-2xl font-bold">{{ appointment.queue_number|default:"--" }}</span>
+                </div>
+
+                <!-- Patient Info -->
+                <div class="flex-1">
+                    <div class="flex items-center">
+                        <h3 class="font-semibold text-gray-800 text-lg">{{ appointment.patient.get_full_name }}</h3>
+                        {% if appointment.ai_priority %}
+                        <span class="ml-2 px-2 py-0.5 text-xs font-medium bg-red-100 text-red-800 rounded-full">High Priority</span>
+                        {% endif %}
+                        <span class="ml-2 px-2 py-0.5 text-xs font-medium rounded-full
+                            {% if appointment.status == 'checked_in' %}bg-orange-100 text-orange-800
+                            {% elif appointment.status == 'in_progress' %}bg-blue-100 text-blue-800
+                            {% else %}bg-gray-100 text-gray-800{% endif %}">
+                            {{ appointment.get_status_display }}
+                        </span>
+                    </div>
+                    <p class="text-sm text-gray-500 mt-1">
+                        Scheduled: {{ appointment.scheduled_time|time:"H:i" }}
+                        {% if appointment.reason %} &bull; {{ appointment.reason|truncatewords:10 }}{% endif %}
+                    </p>
+                    {% if appointment.estimated_wait and appointment.status == 'checked_in' %}
+                    <p class="text-sm text-orange-600 mt-1">Est. wait: {{ appointment.estimated_wait }} min</p>
+                    {% endif %}
+                </div>
+
+                <!-- Actions -->
+                <div class="flex items-center space-x-2">
+                    {% if appointment.status == 'checked_in' %}
+                    <a href="{% url 'appointments:start_consultation' appointment.pk %}"
+                       class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
+                        Start Consultation
+                    </a>
+                    {% elif appointment.status == 'in_progress' %}
+                    <a href="{% url 'medical_records:create' appointment.pk %}"
+                       class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium">
+                        Complete Visit
+                    </a>
+                    {% endif %}
+                    <a href="{% url 'patients:detail' appointment.patient.pk %}"
+                       class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                        View Patient
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="p-12 text-center">
+            <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+            <h3 class="text-lg font-medium text-gray-800 mb-2">No patients waiting</h3>
+            <p class="text-gray-500">Your queue is empty for today.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

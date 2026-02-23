@@ -1,0 +1,207 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Prescription - HMS{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-6 animate-fade-in">
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-800">Create Prescription</h1>
+            {% if patient %}
+            <p class="text-gray-500 mt-1">Patient: {{ patient.get_full_name }}</p>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if patient %}
+    <div class="bg-blue-50 rounded-xl p-4 flex items-center">
+        <svg class="w-6 h-6 text-blue-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+        </svg>
+        <div>
+            <p class="font-medium text-blue-800">{{ patient.get_full_name }}</p>
+            <p class="text-sm text-blue-600">{{ patient.email }}</p>
+        </div>
+    </div>
+    {% endif %}
+
+    <form method="post" class="space-y-6" x-data="prescriptionForm()">
+        {% csrf_token %}
+        {% if patient %}
+        <input type="hidden" name="patient" value="{{ patient.id }}">
+        {% endif %}
+
+        <!-- Medications -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-semibold text-gray-800">Medications</h2>
+                <button type="button" @click="addMedicine()"
+                    class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
+                    + Add Medicine
+                </button>
+            </div>
+
+            <div class="space-y-4">
+                <template x-for="(item, index) in medicines" :key="index">
+                    <div class="p-4 border border-gray-200 rounded-lg bg-gray-50">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="font-medium text-gray-700">Medicine #<span x-text="index + 1"></span></span>
+                            <button type="button" @click="removeMedicine(index)" x-show="medicines.length > 1"
+                                class="text-red-500 hover:text-red-700">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div class="lg:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Medicine <span class="text-red-500">*</span></label>
+                                <select name="medicine[]" required x-model="item.medicineId" @change="updateStockInfo(index)"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="">Select medicine</option>
+                                    {% for medicine in medicines %}
+                                    <option value="{{ medicine.id }}"
+                                        data-stock="{{ stock_data|yesno:'1,0' }}"
+                                        {% if stock_data %}
+                                        data-available="{{ stock_data|default_if_none:'' }}"
+                                        {% endif %}>
+                                        {{ medicine.name }}{% if medicine.strength %} ({{ medicine.strength }}){% endif %}
+                                        {% if stock_data %}
+                                            {% with stock_data|default_if_none:'' as sd %}
+                                            {% endwith %}
+                                        {% endif %}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                <!-- Stock Status Indicator -->
+                                <div x-show="item.stockStatus" class="mt-2">
+                                    <span x-show="item.stockStatus === 'in_stock'"
+                                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                        </svg>
+                                        In Stock: <span x-text="item.stockAvailable"></span> units
+                                    </span>
+                                    <span x-show="item.stockStatus === 'low_stock'"
+                                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                        </svg>
+                                        Low Stock: <span x-text="item.stockAvailable"></span> units
+                                    </span>
+                                    <span x-show="item.stockStatus === 'out_of_stock'"
+                                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                                        </svg>
+                                        Out of Stock
+                                    </span>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
+                                <input type="number" name="quantity[]" min="1" value="1" x-model="item.quantity"
+                                    :max="item.stockAvailable || 999"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                <p x-show="item.stockAvailable && item.quantity > item.stockAvailable"
+                                    class="mt-1 text-xs text-red-600">
+                                    Exceeds available stock!
+                                </p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Dosage</label>
+                                <input type="text" name="dosage[]" placeholder="e.g., 1 tablet"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Frequency</label>
+                                <select name="frequency[]"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="">Select frequency</option>
+                                    <option value="Once daily">Once daily</option>
+                                    <option value="Twice daily">Twice daily</option>
+                                    <option value="Three times daily">Three times daily</option>
+                                    <option value="Four times daily">Four times daily</option>
+                                    <option value="Every 4 hours">Every 4 hours</option>
+                                    <option value="Every 6 hours">Every 6 hours</option>
+                                    <option value="Every 8 hours">Every 8 hours</option>
+                                    <option value="As needed">As needed</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Duration</label>
+                                <input type="text" name="duration[]" placeholder="e.g., 7 days"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </div>
+
+        <!-- Notes -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <h2 class="text-lg font-semibold text-gray-800 mb-4">Instructions & Notes</h2>
+            <textarea name="notes" rows="3" placeholder="Special instructions for the patient or pharmacist"
+                class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
+        </div>
+
+        <!-- Submit -->
+        <div class="flex items-center justify-end space-x-4">
+            <a href="{% url 'accounts:dashboard' %}" class="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                Cancel
+            </a>
+            <button type="submit" class="px-6 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium">
+                Create Prescription
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+// Stock data from server
+const stockData = {
+    {% for med_id, data in stock_data.items %}
+    {{ med_id }}: { available: {{ data.available }}, status: '{{ data.status }}' },
+    {% endfor %}
+};
+
+function prescriptionForm() {
+    return {
+        medicines: [{ medicineId: '', quantity: 1, stockStatus: '', stockAvailable: 0 }],
+
+        addMedicine() {
+            this.medicines.push({ medicineId: '', quantity: 1, stockStatus: '', stockAvailable: 0 });
+        },
+
+        removeMedicine(index) {
+            this.medicines.splice(index, 1);
+        },
+
+        updateStockInfo(index) {
+            const medicineId = this.medicines[index].medicineId;
+            if (medicineId && stockData[medicineId]) {
+                this.medicines[index].stockStatus = stockData[medicineId].status;
+                this.medicines[index].stockAvailable = stockData[medicineId].available;
+            } else {
+                this.medicines[index].stockStatus = '';
+                this.medicines[index].stockAvailable = 0;
+            }
+        },
+
+        async checkStockRealtime(medicineId) {
+            // Optional: Real-time stock check via API
+            try {
+                const response = await fetch(`/pharmacy/api/stock-check/${medicineId}/`);
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error('Error checking stock:', error);
+                return null;
+            }
+        }
+    }
+}
+</script>
+{% endblock %}

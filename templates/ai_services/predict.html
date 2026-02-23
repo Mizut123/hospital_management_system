@@ -1,0 +1,325 @@
+{% extends 'base.html' %}
+
+{% block title %}Disease Prediction - HMS{% endblock %}
+{% block page_title %}AI Disease Prediction{% endblock %}
+
+{% block content %}
+<div class="space-y-6" x-data="predictionApp()">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+        <div>
+            <h2 class="text-2xl font-bold text-gray-800">AI Disease Prediction</h2>
+            <p class="text-gray-500">Enter patient symptoms and demographics for ML-powered diagnosis prediction</p>
+        </div>
+        <div class="flex items-center space-x-3">
+            {% if active_model %}
+            <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
+                Model {{ active_model.version }} Active ({{ active_model.accuracy|floatformat:1 }}% accuracy)
+            </span>
+            {% else %}
+            <span class="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-sm font-medium">
+                Rule-based mode (no ML model trained)
+            </span>
+            {% endif %}
+            <a href="{% url 'ai_services:ml_dashboard' %}" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium">
+                ML Dashboard
+            </a>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Prediction Form -->
+        <div class="lg:col-span-2">
+            <form method="post" class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-6">
+                {% csrf_token %}
+
+                <!-- Patient Selection -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Patient (Optional)</label>
+                    <select name="patient_id" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        <option value="">-- Select patient --</option>
+                        {% for p in patients %}
+                        <option value="{{ p.id }}" {% if form_data.patient_id == p.id|stringformat:"d" %}selected{% endif %}>
+                            {{ p.get_full_name|default:p.email }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Demographics -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Age *</label>
+                        <input type="number" name="age" min="0" max="120" required
+                               value="{{ form_data.age|default:'' }}"
+                               class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Gender *</label>
+                        <select name="gender" required class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <option value="male" {% if form_data.gender == 'male' %}selected{% endif %}>Male</option>
+                            <option value="female" {% if form_data.gender == 'female' %}selected{% endif %}>Female</option>
+                            <option value="other" {% if form_data.gender == 'other' %}selected{% endif %}>Other</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">BP Systolic</label>
+                        <input type="number" name="bp_systolic" min="60" max="250" placeholder="120"
+                               value="{{ form_data.bp_systolic|default:'' }}"
+                               class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">BP Diastolic</label>
+                        <input type="number" name="bp_diastolic" min="40" max="160" placeholder="80"
+                               value="{{ form_data.bp_diastolic|default:'' }}"
+                               class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Heart Rate (bpm)</label>
+                        <input type="number" name="heart_rate" min="30" max="220" placeholder="72"
+                               value="{{ form_data.heart_rate|default:'' }}"
+                               class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Temperature (C)</label>
+                        <input type="number" name="temperature" step="0.1" min="34" max="43" placeholder="37.0"
+                               value="{{ form_data.temperature|default:'' }}"
+                               class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">SpO2 (%)</label>
+                        <input type="number" name="spo2" min="50" max="100" placeholder="98"
+                               value="{{ form_data.spo2|default:'' }}"
+                               class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+
+                <!-- Symptoms Selection -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-3">Symptoms *</label>
+
+                    {% for category, symptoms in symptom_categories.items %}
+                    <div class="mb-4">
+                        <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">{{ category }}</h4>
+                        <div class="flex flex-wrap gap-2">
+                            {% for symptom in symptoms %}
+                            <label class="inline-flex items-center cursor-pointer">
+                                <input type="checkbox" name="symptoms" value="{{ symptom }}"
+                                       {% if symptom in form_data.symptoms %}checked{% endif %}
+                                       class="hidden peer">
+                                <span class="px-3 py-1.5 text-sm border border-gray-300 rounded-full
+                                             peer-checked:bg-blue-600 peer-checked:text-white peer-checked:border-blue-600
+                                             hover:bg-gray-100 transition-colors">
+                                    {{ symptom|cut:"_" }}
+                                </span>
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endfor %}
+
+                    <div class="mt-3">
+                        <label class="block text-sm text-gray-600 mb-1">Additional symptoms (comma-separated)</label>
+                        <input type="text" name="custom_symptoms" placeholder="e.g., neck stiffness, sensitivity to light"
+                               value="{{ form_data.custom_symptoms|default:'' }}"
+                               class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all font-semibold text-lg">
+                    Predict Disease
+                </button>
+            </form>
+        </div>
+
+        <!-- Results Panel -->
+        <div class="space-y-6">
+            {% if prediction_result %}
+            <!-- Prediction Results -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-gray-800">Prediction Results</h3>
+                    <span class="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs font-medium">
+                        {{ prediction_result.model_version }}
+                    </span>
+                </div>
+
+                {% if prediction_result.model_accuracy %}
+                <p class="text-xs text-gray-500 mb-4">Model accuracy: {{ prediction_result.model_accuracy }}%</p>
+                {% endif %}
+
+                <div class="space-y-3">
+                    {% for pred in prediction_result.predictions %}
+                    <div class="p-4 rounded-lg border {% if forloop.first %}border-blue-200 bg-blue-50{% else %}border-gray-200{% endif %}">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="font-semibold {% if forloop.first %}text-blue-800{% else %}text-gray-700{% endif %}">
+                                    {{ pred.disease }}
+                                </p>
+                                {% if pred.icd_code %}
+                                <p class="text-xs text-gray-500 mt-1">ICD-10: {{ pred.icd_code }}</p>
+                                {% endif %}
+                            </div>
+                            <span class="px-2 py-1 rounded-full text-sm font-bold
+                                {% if pred.confidence >= 70 %}bg-green-100 text-green-700
+                                {% elif pred.confidence >= 40 %}bg-yellow-100 text-yellow-700
+                                {% else %}bg-gray-100 text-gray-700{% endif %}">
+                                {{ pred.confidence }}%
+                            </span>
+                        </div>
+                        <!-- Confidence bar -->
+                        <div class="mt-2 h-2 bg-gray-200 rounded-full overflow-hidden">
+                            <div class="h-full rounded-full {% if forloop.first %}bg-blue-500{% else %}bg-gray-400{% endif %}"
+                                 style="width: {{ pred.confidence }}%"></div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-gray-500 text-sm">No predictions could be made. Try adding more symptoms.</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Confirm/Correct Diagnosis -->
+            {% if prediction_result.predictions %}
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-3">Confirm Diagnosis</h3>
+                <p class="text-sm text-gray-500 mb-4">Confirm or correct the prediction to improve the ML model.</p>
+
+                <div class="space-y-3">
+                    <!-- Quick confirm buttons -->
+                    {% for pred in prediction_result.predictions %}
+                    <button @click="confirmDiagnosis('{{ pred.disease }}', '{{ pred.icd_code }}')"
+                            class="w-full text-left px-4 py-3 border border-gray-200 rounded-lg hover:bg-green-50 hover:border-green-300 transition-colors">
+                        <span class="text-sm font-medium text-gray-700">Confirm: {{ pred.disease }}</span>
+                    </button>
+                    {% endfor %}
+
+                    <!-- Custom diagnosis -->
+                    <div class="pt-3 border-t border-gray-200">
+                        <p class="text-sm text-gray-600 mb-2">Or enter correct diagnosis:</p>
+                        <input type="text" x-model="customDiagnosis" placeholder="Disease name"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm mb-2">
+                        <input type="text" x-model="customIcdCode" placeholder="ICD-10 code (optional)"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm mb-2">
+                        <button @click="confirmDiagnosis(customDiagnosis, customIcdCode)"
+                                :disabled="!customDiagnosis"
+                                class="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium">
+                            Submit Correct Diagnosis
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Feedback message -->
+                <div x-show="feedbackMessage" x-transition
+                     class="mt-4 p-3 rounded-lg text-sm"
+                     :class="feedbackSuccess ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'">
+                    <span x-text="feedbackMessage"></span>
+                </div>
+            </div>
+            {% endif %}
+            {% else %}
+            <!-- Empty state -->
+            <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 text-center">
+                <svg class="w-16 h-16 text-blue-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                </svg>
+                <h3 class="text-lg font-semibold text-blue-800 mb-2">Enter Patient Data</h3>
+                <p class="text-sm text-blue-600">Select symptoms and enter demographics to get an AI-powered disease prediction.</p>
+            </div>
+
+            <!-- How it works -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-3">How It Works</h3>
+                <div class="space-y-3 text-sm text-gray-600">
+                    <div class="flex items-start space-x-3">
+                        <span class="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">1</span>
+                        <p>Enter patient symptoms, age, gender, and vitals</p>
+                    </div>
+                    <div class="flex items-start space-x-3">
+                        <span class="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">2</span>
+                        <p>Random Forest model predicts probable diseases</p>
+                    </div>
+                    <div class="flex items-start space-x-3">
+                        <span class="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">3</span>
+                        <p>Confirm or correct the diagnosis</p>
+                    </div>
+                    <div class="flex items-start space-x-3">
+                        <span class="w-6 h-6 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">4</span>
+                        <p>Model auto-retrains after 50 confirmed cases</p>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+function predictionApp() {
+    return {
+        customDiagnosis: '',
+        customIcdCode: '',
+        feedbackMessage: '',
+        feedbackSuccess: false,
+
+        async confirmDiagnosis(disease, icdCode) {
+            if (!disease) return;
+
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            const topPrediction = '{{ prediction_result.predictions.0.disease|default:"" }}';
+            const topConfidence = {{ prediction_result.predictions.0.confidence|default:"0" }};
+
+            try {
+                const response = await fetch('{% url "ai_services:confirm_diagnosis" %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken,
+                    },
+                    body: JSON.stringify({
+                        symptoms: '{{ form_data.symptom_string|default:"" }}',
+                        age: {{ form_data.age|default:"0" }},
+                        gender: '{{ form_data.gender|default:"other" }}',
+                        confirmed_disease: disease,
+                        icd_code: icdCode || '',
+                        predicted_disease: topPrediction,
+                        predicted_confidence: topConfidence,
+                        patient_id: '{{ form_data.patient_id|default:"" }}' || null,
+                        bp_systolic: {{ form_data.bp_systolic|default:"null" }},
+                        bp_diastolic: {{ form_data.bp_diastolic|default:"null" }},
+                        heart_rate: {{ form_data.heart_rate|default:"null" }},
+                        temperature: {{ form_data.temperature|default:"null" }},
+                        spo2: {{ form_data.spo2|default:"null" }},
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.status === 'saved') {
+                    this.feedbackSuccess = true;
+                    let msg = `Diagnosis "${disease}" saved as training data.`;
+                    if (data.prediction_correct) {
+                        msg += ' Prediction was correct!';
+                    }
+                    msg += ` (${data.pending_for_retrain}/${data.retrain_threshold} until next retrain)`;
+                    if (data.retrained) {
+                        msg += ` Model retrained to ${data.new_model.version} (${data.new_model.accuracy}% accuracy)!`;
+                    }
+                    this.feedbackMessage = msg;
+                } else {
+                    this.feedbackSuccess = false;
+                    this.feedbackMessage = data.error || 'Failed to save.';
+                }
+            } catch (e) {
+                this.feedbackSuccess = false;
+                this.feedbackMessage = 'Network error. Please try again.';
+            }
+        }
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,79 @@
+[
+  {
+    "model": "accounts.department",
+    "pk": 1,
+    "fields": {
+      "name": "General Medicine",
+      "description": "General medical consultations and primary care",
+      "is_active": true
+    }
+  },
+  {
+    "model": "accounts.department",
+    "pk": 2,
+    "fields": {
+      "name": "Cardiology",
+      "description": "Heart and cardiovascular system specialists",
+      "is_active": true
+    }
+  },
+  {
+    "model": "accounts.department",
+    "pk": 3,
+    "fields": {
+      "name": "Pediatrics",
+      "description": "Medical care for infants, children, and adolescents",
+      "is_active": true
+    }
+  },
+  {
+    "model": "accounts.department",
+    "pk": 4,
+    "fields": {
+      "name": "Orthopedics",
+      "description": "Musculoskeletal system specialists",
+      "is_active": true
+    }
+  },
+  {
+    "model": "accounts.department",
+    "pk": 5,
+    "fields": {
+      "name": "Dermatology",
+      "description": "Skin, hair, and nail specialists",
+      "is_active": true
+    }
+  },
+  {
+    "model": "pharmacy.medicinecategory",
+    "pk": 1,
+    "fields": {
+      "name": "Antibiotics",
+      "description": "Medications used to treat bacterial infections"
+    }
+  },
+  {
+    "model": "pharmacy.medicinecategory",
+    "pk": 2,
+    "fields": {
+      "name": "Analgesics",
+      "description": "Pain relief medications"
+    }
+  },
+  {
+    "model": "pharmacy.medicinecategory",
+    "pk": 3,
+    "fields": {
+      "name": "Cardiovascular",
+      "description": "Medications for heart and blood vessel conditions"
+    }
+  },
+  {
+    "model": "pharmacy.medicinecategory",
+    "pk": 4,
+    "fields": {
+      "name": "Vitamins & Supplements",
+      "description": "Nutritional supplements"
+    }
+  }
+]

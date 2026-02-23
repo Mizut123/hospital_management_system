@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Stock Alerts - HMS{% endblock %}
+
+{% block content %}
+<div class="space-y-6 animate-fade-in">
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-800">Stock Alerts</h1>
+            <p class="text-gray-500 mt-1">Items requiring attention</p>
+        </div>
+        <a href="{% url 'pharmacy:stock' %}" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium">
+            Back to Stock
+        </a>
+    </div>
+
+    <!-- Alert Summary -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="bg-red-50 rounded-xl border border-red-100 p-6">
+            <div class="flex items-center">
+                <div class="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center mr-4">
+                    <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-sm text-red-600">Out of Stock</p>
+                    <p class="text-2xl font-bold text-red-700">{{ out_of_stock_count|default:0 }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-yellow-50 rounded-xl border border-yellow-100 p-6">
+            <div class="flex items-center">
+                <div class="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center mr-4">
+                    <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-sm text-yellow-600">Low Stock</p>
+                    <p class="text-2xl font-bold text-yellow-700">{{ low_stock_count|default:0 }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-orange-50 rounded-xl border border-orange-100 p-6">
+            <div class="flex items-center">
+                <div class="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center mr-4">
+                    <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-sm text-orange-600">Expiring Soon</p>
+                    <p class="text-2xl font-bold text-orange-700">{{ expiring_soon_count|default:0 }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Out of Stock -->
+    {% if out_of_stock %}
+    <div class="bg-white rounded-xl shadow-sm border border-red-200">
+        <div class="px-6 py-4 border-b border-red-100 bg-red-50 rounded-t-xl">
+            <h2 class="text-lg font-semibold text-red-800 flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+                Out of Stock - Immediate Action Required
+            </h2>
+        </div>
+        <div class="divide-y divide-gray-100">
+            {% for item in out_of_stock %}
+            <div class="p-4 flex items-center justify-between hover:bg-gray-50">
+                <div>
+                    <p class="font-medium text-gray-800">{{ item.medicine.name }}</p>
+                    <p class="text-sm text-gray-500">{{ item.medicine.category|default:"Uncategorized" }}</p>
+                </div>
+                <button class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium">
+                    Reorder Now
+                </button>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Low Stock -->
+    {% if low_stock %}
+    <div class="bg-white rounded-xl shadow-sm border border-yellow-200">
+        <div class="px-6 py-4 border-b border-yellow-100 bg-yellow-50 rounded-t-xl">
+            <h2 class="text-lg font-semibold text-yellow-800 flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                </svg>
+                Low Stock - Reorder Recommended
+            </h2>
+        </div>
+        <div class="divide-y divide-gray-100">
+            {% for item in low_stock %}
+            <div class="p-4 flex items-center justify-between hover:bg-gray-50">
+                <div class="flex-1">
+                    <p class="font-medium text-gray-800">{{ item.medicine.name }}</p>
+                    <p class="text-sm text-gray-500">{{ item.medicine.category|default:"Uncategorized" }}</p>
+                </div>
+                <div class="text-center px-6">
+                    <p class="text-sm text-gray-500">Current</p>
+                    <p class="font-semibold text-yellow-600">{{ item.quantity }}</p>
+                </div>
+                <div class="text-center px-6">
+                    <p class="text-sm text-gray-500">Reorder Level</p>
+                    <p class="font-semibold text-gray-800">{{ item.reorder_level }}</p>
+                </div>
+                <button class="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors text-sm font-medium">
+                    Restock
+                </button>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Expiring Soon -->
+    {% if expiring_soon %}
+    <div class="bg-white rounded-xl shadow-sm border border-orange-200">
+        <div class="px-6 py-4 border-b border-orange-100 bg-orange-50 rounded-t-xl">
+            <h2 class="text-lg font-semibold text-orange-800 flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                Expiring Soon (within 30 days)
+            </h2>
+        </div>
+        <div class="divide-y divide-gray-100">
+            {% for item in expiring_soon %}
+            <div class="p-4 flex items-center justify-between hover:bg-gray-50">
+                <div class="flex-1">
+                    <p class="font-medium text-gray-800">{{ item.medicine.name }}</p>
+                    <p class="text-sm text-gray-500">Batch: {{ item.batch_number|default:"N/A" }}</p>
+                </div>
+                <div class="text-center px-6">
+                    <p class="text-sm text-gray-500">Quantity</p>
+                    <p class="font-semibold text-gray-800">{{ item.quantity }}</p>
+                </div>
+                <div class="text-center px-6">
+                    <p class="text-sm text-gray-500">Expires</p>
+                    <p class="font-semibold text-orange-600">{{ item.expiry_date|date:"M d, Y" }}</p>
+                </div>
+                <button class="px-4 py-2 border border-orange-300 text-orange-600 rounded-lg hover:bg-orange-50 transition-colors text-sm font-medium">
+                    Review
+                </button>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- No Alerts -->
+    {% if not out_of_stock and not low_stock and not expiring_soon %}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
+        <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+        </div>
+        <h3 class="text-lg font-medium text-gray-800 mb-2">All Clear!</h3>
+        <p class="text-gray-500">No stock alerts at this time. All inventory levels are healthy.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

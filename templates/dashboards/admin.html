@@ -1,0 +1,236 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Admin Dashboard - HMS{% endblock %}
+
+{% block page_title %}
+<span class="flex items-center">
+    <span>Administrator Dashboard</span>
+    <span class="ml-3 px-2 py-1 text-xs font-medium bg-red-100 text-red-800 rounded-full">Admin</span>
+</span>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-6 animate-fade-in">
+    <!-- Overview Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-sm p-6 text-white">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-blue-100">Total Users</p>
+                    <p class="text-3xl font-bold mt-1">{{ total_users|intcomma }}</p>
+                </div>
+                <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-500">Active Doctors</p>
+                    <p class="text-3xl font-bold text-gray-800 mt-1">{{ active_doctors|default:0 }}</p>
+                </div>
+                <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                    <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-500">Appointments Today</p>
+                    <p class="text-3xl font-bold text-gray-800 mt-1">{{ appointments_today|default:0 }}</p>
+                </div>
+                <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
+                    <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-500">Departments</p>
+                    <p class="text-3xl font-bold text-gray-800 mt-1">{{ total_departments|default:0 }}</p>
+                </div>
+                <div class="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
+                    <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Distribution & Weekly Stats -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- User Distribution Chart -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <h2 class="text-lg font-semibold text-gray-800 mb-4">User Distribution</h2>
+            <div class="space-y-4">
+                {% if user_stats %}
+                    {% for role, count in user_stats.items %}
+                    <div class="flex items-center">
+                        <div class="w-24 text-sm text-gray-600 capitalize">{{ role }}</div>
+                        <div class="flex-1 mx-4">
+                            <div class="h-4 bg-gray-100 rounded-full overflow-hidden">
+                                <div class="h-full rounded-full
+                                    {% if role == 'patient' %}bg-blue-500
+                                    {% elif role == 'doctor' %}bg-green-500
+                                    {% elif role == 'receptionist' %}bg-purple-500
+                                    {% elif role == 'pharmacist' %}bg-teal-500
+                                    {% else %}bg-red-500{% endif %}"
+                                    style="width: {% widthratio count total_users 100 %}%"></div>
+                            </div>
+                        </div>
+                        <div class="w-16 text-right font-semibold text-gray-800">{{ count }}</div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-center text-gray-500">No user data available</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Weekly Activity -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <h2 class="text-lg font-semibold text-gray-800 mb-4">This Week</h2>
+            <div class="grid grid-cols-2 gap-4">
+                <div class="p-4 bg-blue-50 rounded-lg">
+                    <p class="text-sm text-blue-600 mb-1">Appointments</p>
+                    <p class="text-2xl font-bold text-blue-800">{{ appointments_week|default:0 }}</p>
+                </div>
+                <div class="p-4 bg-green-50 rounded-lg">
+                    <p class="text-sm text-green-600 mb-1">New Patients</p>
+                    <p class="text-2xl font-bold text-green-800">{{ new_patients_week|default:0 }}</p>
+                </div>
+            </div>
+
+            <!-- Analytics Card -->
+            {% if analytics %}
+            <div class="mt-4 p-4 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg text-white">
+                <div class="flex items-center mb-2">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                    </svg>
+                    <span class="font-medium">AI Insights</span>
+                </div>
+                <p class="text-sm text-indigo-100">{{ analytics.summary }}</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <a href="{% url 'accounts:user_create' %}"
+           class="flex items-center p-4 bg-white rounded-xl shadow-sm border border-gray-100 hover:border-blue-300 hover:shadow-md transition-all">
+            <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mr-4">
+                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+                </svg>
+            </div>
+            <div>
+                <p class="font-medium text-gray-800">Add User</p>
+                <p class="text-sm text-gray-500">Create new account</p>
+            </div>
+        </a>
+
+        <a href="{% url 'accounts:user_list' %}"
+           class="flex items-center p-4 bg-white rounded-xl shadow-sm border border-gray-100 hover:border-green-300 hover:shadow-md transition-all">
+            <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mr-4">
+                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                </svg>
+            </div>
+            <div>
+                <p class="font-medium text-gray-800">Manage Users</p>
+                <p class="text-sm text-gray-500">View all users</p>
+            </div>
+        </a>
+
+        <a href="{% url 'analytics:dashboard' %}"
+           class="flex items-center p-4 bg-white rounded-xl shadow-sm border border-gray-100 hover:border-purple-300 hover:shadow-md transition-all">
+            <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mr-4">
+                <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                </svg>
+            </div>
+            <div>
+                <p class="font-medium text-gray-800">Analytics</p>
+                <p class="text-sm text-gray-500">View reports</p>
+            </div>
+        </a>
+
+        <a href="{% url 'accounts:audit_logs' %}"
+           class="flex items-center p-4 bg-white rounded-xl shadow-sm border border-gray-100 hover:border-orange-300 hover:shadow-md transition-all">
+            <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mr-4">
+                <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+            </div>
+            <div>
+                <p class="font-medium text-gray-800">Audit Logs</p>
+                <p class="text-sm text-gray-500">System activity</p>
+            </div>
+        </a>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100">
+        <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+            <h2 class="text-lg font-semibold text-gray-800">Recent Activity</h2>
+            <a href="{% url 'accounts:audit_logs' %}" class="text-sm text-blue-600 hover:text-blue-700 font-medium">View All</a>
+        </div>
+        <div class="p-6">
+            {% if recent_logs %}
+            <div class="space-y-4">
+                {% for log in recent_logs %}
+                <div class="flex items-start p-3 bg-gray-50 rounded-lg">
+                    <div class="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center
+                        {% if log.action == 'login' %}bg-green-100 text-green-600
+                        {% elif log.action == 'logout' %}bg-gray-100 text-gray-600
+                        {% elif log.action == 'create' %}bg-blue-100 text-blue-600
+                        {% elif log.action == 'update' %}bg-yellow-100 text-yellow-600
+                        {% elif log.action == 'delete' %}bg-red-100 text-red-600
+                        {% else %}bg-purple-100 text-purple-600{% endif %}">
+                        {% if log.action == 'login' %}
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
+                        </svg>
+                        {% elif log.action == 'logout' %}
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                        </svg>
+                        {% else %}
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                        </svg>
+                        {% endif %}
+                    </div>
+                    <div class="ml-4 flex-1">
+                        <p class="text-sm font-medium text-gray-800">
+                            {{ log.user.get_full_name|default:"System" }}
+                            <span class="font-normal text-gray-600">{{ log.action }} {{ log.model_name|lower }}</span>
+                        </p>
+                        <p class="text-xs text-gray-500 mt-0.5">{{ log.timestamp|timesince }} ago</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-center text-gray-500 py-4">No recent activity</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

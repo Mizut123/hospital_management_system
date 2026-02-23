@@ -1,0 +1,354 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Medical Record - HMS{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-6 animate-fade-in" x-data="medicalRecordForm()">
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-800">Create Medical Record</h1>
+            {% if patient %}
+            <p class="text-gray-500 mt-1">Patient: {{ patient.get_full_name }}</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <form method="post" class="space-y-6">
+        {% csrf_token %}
+
+        <!-- Patient Selection (if no appointment) -->
+        {% if not appointment %}
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <h2 class="text-lg font-semibold text-gray-800 mb-4">Patient Information</h2>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Select Patient <span class="text-red-500">*</span></label>
+                <select name="patient" required class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <option value="">Choose a patient</option>
+                    <!-- This would be populated dynamically -->
+                </select>
+            </div>
+        </div>
+        {% else %}
+        <input type="hidden" name="patient" value="{{ patient.id }}">
+        <div class="bg-blue-50 rounded-xl p-4 flex items-center">
+            <svg class="w-6 h-6 text-blue-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+            </svg>
+            <div>
+                <p class="font-medium text-blue-800">{{ patient.get_full_name }}</p>
+                <p class="text-sm text-blue-600">{{ patient.email }}</p>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Chief Complaint -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <h2 class="text-lg font-semibold text-gray-800 mb-4">Chief Complaint</h2>
+            <textarea name="chief_complaint" rows="3" placeholder="Patient's main complaint or reason for visit"
+                class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
+        </div>
+
+        <!-- History -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <h2 class="text-lg font-semibold text-gray-800 mb-4">History of Present Illness</h2>
+            <textarea name="history" rows="4" placeholder="Detailed history of the current illness"
+                class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
+        </div>
+
+        <!-- Vital Signs -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <h2 class="text-lg font-semibold text-gray-800 mb-4">Vital Signs</h2>
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Blood Pressure</label>
+                    <input type="text" name="bp" placeholder="120/80"
+                        class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Pulse (bpm)</label>
+                    <input type="text" name="pulse" placeholder="72"
+                        class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Temperature</label>
+                    <input type="text" name="temperature" placeholder="37.0"
+                        class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Weight (kg)</label>
+                    <input type="text" name="weight" placeholder="70"
+                        class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Height (cm)</label>
+                    <input type="text" name="height" placeholder="175"
+                        class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+            </div>
+        </div>
+
+        <!-- Physical Examination -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <h2 class="text-lg font-semibold text-gray-800 mb-4">Physical Examination</h2>
+            <textarea name="physical_exam" rows="4" placeholder="Findings from physical examination"
+                class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
+        </div>
+
+        <!-- AI Diagnosis Assistant -->
+        <div class="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl border border-purple-100 p-6">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center">
+                    <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
+                        <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-semibold text-gray-800">AI Diagnosis Assistant</h2>
+                        <p class="text-sm text-gray-500">Get AI-powered diagnosis suggestions based on symptoms</p>
+                    </div>
+                </div>
+                <span class="px-2.5 py-1 bg-purple-100 text-purple-700 text-xs font-medium rounded-full">BETA</span>
+            </div>
+
+            <!-- Symptom Input -->
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Enter Symptoms</label>
+                <div class="flex flex-wrap gap-2 mb-3">
+                    <template x-for="(symptom, index) in selectedSymptoms" :key="index">
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-purple-100 text-purple-800">
+                            <span x-text="symptom"></span>
+                            <button type="button" @click="removeSymptom(index)" class="ml-2 text-purple-600 hover:text-purple-800">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                        </span>
+                    </template>
+                </div>
+                <div class="flex space-x-2">
+                    <div class="relative flex-1">
+                        <input type="text" x-model="symptomInput" @keydown.enter.prevent="addSymptom()"
+                            placeholder="Type a symptom (e.g., fever, cough, headache)"
+                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+                        <!-- Autocomplete dropdown -->
+                        <div x-show="filteredKeywords.length > 0 && symptomInput.length > 1"
+                            class="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                            <template x-for="keyword in filteredKeywords" :key="keyword">
+                                <button type="button" @click="selectKeyword(keyword)"
+                                    class="w-full px-4 py-2 text-left text-sm hover:bg-purple-50 text-gray-700">
+                                    <span x-text="keyword"></span>
+                                </button>
+                            </template>
+                        </div>
+                    </div>
+                    <button type="button" @click="addSymptom()"
+                        class="px-4 py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
+                        Add
+                    </button>
+                    <button type="button" @click="getAISuggestions()" :disabled="selectedSymptoms.length === 0 || isLoading"
+                        class="px-4 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center">
+                        <svg x-show="isLoading" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span x-text="isLoading ? 'Analyzing...' : 'Get AI Suggestions'"></span>
+                    </button>
+                </div>
+                <p class="mt-2 text-xs text-gray-500">Common symptoms: Fever, Cough, Headache, Fatigue, Chest Pain, Abdominal Pain, Nausea, Diarrhea, Joint Pain, Skin Rash, Dizziness, Sore Throat, Back Pain</p>
+            </div>
+
+            <!-- AI Suggestions Results -->
+            <div x-show="aiSuggestions.length > 0" class="mt-4">
+                <h3 class="text-sm font-medium text-gray-700 mb-3">Suggested Diagnoses</h3>
+                <div class="space-y-2">
+                    <template x-for="(suggestion, index) in aiSuggestions" :key="index">
+                        <div class="bg-white rounded-lg p-3 border border-gray-200 hover:border-purple-300 transition-colors cursor-pointer"
+                            @click="useSuggestion(suggestion)">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <span class="font-medium text-gray-800" x-text="suggestion.diagnosis"></span>
+                                    <span class="ml-2 px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded" x-text="'ICD: ' + suggestion.icd_code"></span>
+                                </div>
+                                <div class="flex items-center">
+                                    <div class="w-24 h-2 bg-gray-200 rounded-full mr-2">
+                                        <div class="h-2 rounded-full"
+                                            :class="{
+                                                'bg-green-500': suggestion.confidence >= 70,
+                                                'bg-yellow-500': suggestion.confidence >= 40 && suggestion.confidence < 70,
+                                                'bg-red-500': suggestion.confidence < 40
+                                            }"
+                                            :style="'width: ' + suggestion.confidence + '%'"></div>
+                                    </div>
+                                    <span class="text-sm font-medium"
+                                        :class="{
+                                            'text-green-600': suggestion.confidence >= 70,
+                                            'text-yellow-600': suggestion.confidence >= 40 && suggestion.confidence < 70,
+                                            'text-red-600': suggestion.confidence < 40
+                                        }"
+                                        x-text="suggestion.confidence + '%'"></span>
+                                </div>
+                            </div>
+                            <div class="mt-1 flex flex-wrap gap-1">
+                                <template x-for="symptom in suggestion.matched_symptoms" :key="symptom">
+                                    <span class="px-1.5 py-0.5 bg-purple-50 text-purple-700 text-xs rounded" x-text="symptom"></span>
+                                </template>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+                <p class="mt-3 text-xs text-gray-500 italic">
+                    <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    AI suggestions are for reference only. Clinical judgment is required. Click a suggestion to add it to diagnoses.
+                </p>
+            </div>
+        </div>
+
+        <!-- Diagnoses -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-semibold text-gray-800">Diagnoses</h2>
+                <button type="button" @click="addDiagnosis()"
+                    class="px-3 py-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors text-sm font-medium">
+                    + Add Diagnosis
+                </button>
+            </div>
+            <div class="space-y-3">
+                <template x-for="(diagnosis, index) in diagnoses" :key="index">
+                    <div class="flex items-center space-x-2">
+                        <input type="text" name="diagnosis[]" x-model="diagnoses[index]" placeholder="Enter diagnosis"
+                            class="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <button type="button" @click="removeDiagnosis(index)" x-show="diagnoses.length > 1"
+                            class="p-2 text-red-500 hover:bg-red-50 rounded-lg">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+                </template>
+            </div>
+        </div>
+
+        <!-- Assessment & Plan -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                <h2 class="text-lg font-semibold text-gray-800 mb-4">Assessment</h2>
+                <textarea name="assessment" rows="4" placeholder="Clinical assessment"
+                    class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                <h2 class="text-lg font-semibold text-gray-800 mb-4">Treatment Plan</h2>
+                <textarea name="plan" rows="4" placeholder="Treatment plan and recommendations"
+                    class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
+            </div>
+        </div>
+
+        <!-- Notes -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <h2 class="text-lg font-semibold text-gray-800 mb-4">Additional Notes</h2>
+            <textarea name="notes" rows="3" placeholder="Any additional notes or instructions"
+                class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
+        </div>
+
+        <!-- Submit -->
+        <div class="flex items-center justify-end space-x-4">
+            <a href="{% url 'accounts:dashboard' %}" class="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                Cancel
+            </a>
+            <button type="submit" class="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
+                Save Medical Record
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+function medicalRecordForm() {
+    return {
+        diagnoses: [''],
+        selectedSymptoms: [],
+        symptomInput: '',
+        aiSuggestions: [],
+        isLoading: false,
+        symptomKeywords: [
+            'Fever', 'Headache', 'Cough', 'Chest Pain', 'Abdominal Pain', 'Fatigue',
+            'Shortness Of Breath', 'Nausea', 'Diarrhea', 'Joint Pain', 'Skin Rash',
+            'Dizziness', 'Sore Throat', 'Back Pain'
+        ],
+
+        get filteredKeywords() {
+            if (!this.symptomInput) return [];
+            const input = this.symptomInput.toLowerCase();
+            return this.symptomKeywords.filter(k =>
+                k.toLowerCase().includes(input) &&
+                !this.selectedSymptoms.includes(k)
+            ).slice(0, 5);
+        },
+
+        addDiagnosis() {
+            this.diagnoses.push('');
+        },
+
+        removeDiagnosis(index) {
+            this.diagnoses.splice(index, 1);
+        },
+
+        addSymptom() {
+            const symptom = this.symptomInput.trim();
+            if (symptom && !this.selectedSymptoms.includes(symptom)) {
+                this.selectedSymptoms.push(symptom);
+                this.symptomInput = '';
+            }
+        },
+
+        removeSymptom(index) {
+            this.selectedSymptoms.splice(index, 1);
+        },
+
+        selectKeyword(keyword) {
+            if (!this.selectedSymptoms.includes(keyword)) {
+                this.selectedSymptoms.push(keyword);
+            }
+            this.symptomInput = '';
+        },
+
+        async getAISuggestions() {
+            if (this.selectedSymptoms.length === 0) return;
+
+            this.isLoading = true;
+            try {
+                const symptomsParam = this.selectedSymptoms.join(',');
+                const response = await fetch(`/records/api/diagnosis-suggestions/?symptoms=${encodeURIComponent(symptomsParam)}`);
+                const data = await response.json();
+
+                if (data.suggestions) {
+                    this.aiSuggestions = data.suggestions;
+                }
+            } catch (error) {
+                console.error('Error getting AI suggestions:', error);
+            } finally {
+                this.isLoading = false;
+            }
+        },
+
+        useSuggestion(suggestion) {
+            // Add to diagnoses if not already present
+            const diagnosisText = `${suggestion.diagnosis} (${suggestion.icd_code})`;
+            if (!this.diagnoses.includes(diagnosisText)) {
+                // Find first empty diagnosis slot or add new one
+                const emptyIndex = this.diagnoses.findIndex(d => !d.trim());
+                if (emptyIndex >= 0) {
+                    this.diagnoses[emptyIndex] = diagnosisText;
+                } else {
+                    this.diagnoses.push(diagnosisText);
+                }
+            }
+        }
+    }
+}
+</script>
+{% endblock %}

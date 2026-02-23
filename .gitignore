@@ -1,0 +1,53 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environment
+venv/
+env/
+.venv/
+
+# Django
+*.sqlite3
+db.sqlite3
+*.log
+logs/
+media/
+staticfiles/
+
+# Environment variables — NEVER commit secrets
+.env
+
+# ML model files (large binaries)
+ml_models/*.pkl
+ml_models/*.joblib
+ml_models/*.h5
+ml_models/*.pt
+ml_models/*.pth
+
+# EasyOCR model cache
+~/.EasyOCR/
+
+# IDE / OS
+.vscode/
+.idea/
+*.swp
+*.swo
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# Claude Code session files
+.claude/
+
+# Misc
+nul
+*.docx
+generate_report.py

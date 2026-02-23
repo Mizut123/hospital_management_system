@@ -1,0 +1,213 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Pharmacy Dashboard - HMS{% endblock %}
+
+{% block page_title %}
+<span class="flex items-center">
+    <span>Pharmacy Dashboard</span>
+    <span class="ml-3 px-2 py-1 text-xs font-medium bg-teal-100 text-teal-800 rounded-full">Pharmacist</span>
+</span>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-6 animate-fade-in">
+    <!-- Stats Overview -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl shadow-sm p-6 text-white">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-orange-100">Pending Prescriptions</p>
+                    <p class="text-3xl font-bold mt-1">{{ pending_count|default:0 }}</p>
+                </div>
+                <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-500">Dispensed Today</p>
+                    <p class="text-3xl font-bold text-gray-800 mt-1">{{ dispensed_today|default:0 }}</p>
+                </div>
+                <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                    <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-500">Low Stock Items</p>
+                    <p class="text-3xl font-bold text-red-600 mt-1">{{ low_stock_count|default:0 }}</p>
+                </div>
+                <div class="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
+                    <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-500">Expiring Soon</p>
+                    <p class="text-3xl font-bold text-yellow-600 mt-1">{{ expiring_count|default:0 }}</p>
+                </div>
+                <div class="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center">
+                    <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Prescription Queue -->
+        <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100">
+            <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+                <h2 class="text-lg font-semibold text-gray-800 flex items-center">
+                    <span>Prescription Queue</span>
+                    {% if pending_count > 0 %}
+                    <span class="ml-3 px-2 py-1 text-xs font-medium bg-orange-100 text-orange-800 rounded-full animate-pulse">
+                        {{ pending_count }} pending
+                    </span>
+                    {% endif %}
+                </h2>
+                <a href="{% url 'pharmacy:prescriptions' %}" class="text-sm text-blue-600 hover:text-blue-700 font-medium">View All</a>
+            </div>
+            <div class="p-6">
+                {% if pending_prescriptions %}
+                <div class="space-y-4">
+                    {% for prescription in pending_prescriptions %}
+                    <div class="p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                        <div class="flex items-start justify-between mb-3">
+                            <div>
+                                <p class="font-semibold text-gray-800">{{ prescription.patient.get_full_name }}</p>
+                                <p class="text-sm text-gray-500">Prescribed by Dr. {{ prescription.doctor.get_full_name }}</p>
+                            </div>
+                            <span class="text-xs text-gray-500">{{ prescription.created_at|timesince }} ago</span>
+                        </div>
+                        <div class="mb-3">
+                            <p class="text-sm font-medium text-gray-700 mb-1">Medicines:</p>
+                            <div class="flex flex-wrap gap-2">
+                                {% for item in prescription.items.all %}
+                                <span class="px-2 py-1 text-xs bg-white border border-gray-200 rounded">
+                                    {{ item.medicine.name }} ({{ item.quantity }})
+                                </span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-orange-600 font-medium">{{ prescription.items.count }} items</span>
+                            <a href="{% url 'pharmacy:dispense' prescription.pk %}"
+                               class="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors">
+                                Dispense
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-12">
+                    <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <p class="text-gray-500">No pending prescriptions</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Stock Alerts & AI Predictions -->
+        <div class="space-y-6">
+            <!-- Low Stock Alert -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100">
+                <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+                    <h2 class="text-lg font-semibold text-gray-800">Low Stock Alert</h2>
+                    <a href="{% url 'pharmacy:stock' %}" class="text-sm text-blue-600 hover:text-blue-700 font-medium">Manage</a>
+                </div>
+                <div class="p-6">
+                    {% if low_stock_items %}
+                    <div class="space-y-3">
+                        {% for stock in low_stock_items %}
+                        <div class="flex items-center justify-between p-3 bg-red-50 rounded-lg">
+                            <div>
+                                <p class="font-medium text-gray-800">{{ stock.medicine.name }}</p>
+                                <p class="text-xs text-gray-500">Reorder level: {{ stock.reorder_level }}</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-lg font-bold text-red-600">{{ stock.quantity }}</p>
+                                <p class="text-xs text-gray-500">in stock</p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-center text-gray-500 py-4">All items are well-stocked</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- AI Stock Predictions -->
+            <div class="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl shadow-sm p-6 text-white">
+                <div class="flex items-center mb-4">
+                    <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                    </svg>
+                    <h2 class="text-lg font-semibold">AI Stock Predictions</h2>
+                </div>
+                {% if stock_predictions %}
+                <div class="space-y-3">
+                    {% for pred in stock_predictions %}
+                    <div class="flex items-center justify-between p-3 bg-white/10 rounded-lg">
+                        <span class="text-indigo-100">{{ pred.medicine }}</span>
+                        <span class="font-semibold">{{ pred.days_left }} days</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-indigo-100 text-sm">AI predictions will be available as more data is collected.</p>
+                {% endif %}
+            </div>
+
+            <!-- Expiring Medicines -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100">
+                <div class="px-6 py-4 border-b border-gray-100">
+                    <h2 class="text-lg font-semibold text-gray-800">Expiring Soon</h2>
+                </div>
+                <div class="p-6">
+                    {% if expiring_soon %}
+                    <div class="space-y-3">
+                        {% for stock in expiring_soon %}
+                        <div class="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
+                            <div>
+                                <p class="font-medium text-gray-800">{{ stock.medicine.name }}</p>
+                                <p class="text-xs text-gray-500">Batch: {{ stock.batch_number }}</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-sm font-medium text-yellow-600">{{ stock.expiry_date|date:"M d, Y" }}</p>
+                                <p class="text-xs text-gray-500">{{ stock.quantity }} units</p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-center text-gray-500 py-4">No items expiring soon</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

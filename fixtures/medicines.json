@@ -1,0 +1,2222 @@
+[
+    {
+        "model": "pharmacy.medicinecategory",
+        "pk": 1,
+        "fields": {
+            "name": "Antibiotics",
+            "description": "Medications used to treat bacterial infections"
+        }
+    },
+    {
+        "model": "pharmacy.medicinecategory",
+        "pk": 2,
+        "fields": {
+            "name": "Analgesics",
+            "description": "Pain relief medications including NSAIDs and opioids"
+        }
+    },
+    {
+        "model": "pharmacy.medicinecategory",
+        "pk": 3,
+        "fields": {
+            "name": "Cardiovascular",
+            "description": "Medications for heart and blood vessel conditions"
+        }
+    },
+    {
+        "model": "pharmacy.medicinecategory",
+        "pk": 4,
+        "fields": {
+            "name": "Vitamins & Supplements",
+            "description": "Nutritional supplements and vitamins"
+        }
+    },
+    {
+        "model": "pharmacy.medicinecategory",
+        "pk": 5,
+        "fields": {
+            "name": "Antihistamines",
+            "description": "Medications for allergies and allergic reactions"
+        }
+    },
+    {
+        "model": "pharmacy.medicinecategory",
+        "pk": 6,
+        "fields": {
+            "name": "Gastrointestinal",
+            "description": "Medications for digestive system disorders"
+        }
+    },
+    {
+        "model": "pharmacy.medicinecategory",
+        "pk": 7,
+        "fields": {
+            "name": "Respiratory",
+            "description": "Medications for lung and respiratory conditions"
+        }
+    },
+    {
+        "model": "pharmacy.medicinecategory",
+        "pk": 8,
+        "fields": {
+            "name": "Antidiabetics",
+            "description": "Medications for diabetes management"
+        }
+    },
+    {
+        "model": "pharmacy.medicinecategory",
+        "pk": 9,
+        "fields": {
+            "name": "Antihypertensives",
+            "description": "Medications for high blood pressure"
+        }
+    },
+    {
+        "model": "pharmacy.medicinecategory",
+        "pk": 10,
+        "fields": {
+            "name": "First Aid Supplies",
+            "description": "Basic medical supplies for wound care and first aid"
+        }
+    },
+    {
+        "model": "pharmacy.medicinecategory",
+        "pk": 11,
+        "fields": {
+            "name": "Emergency Medicines",
+            "description": "Critical medications for emergency situations"
+        }
+    },
+    {
+        "model": "pharmacy.medicinecategory",
+        "pk": 12,
+        "fields": {
+            "name": "Anesthetics",
+            "description": "Medications for pain management during procedures"
+        }
+    },
+    {
+        "model": "pharmacy.medicinecategory",
+        "pk": 13,
+        "fields": {
+            "name": "Antidepressants",
+            "description": "Medications for depression and mood disorders"
+        }
+    },
+    {
+        "model": "pharmacy.medicinecategory",
+        "pk": 14,
+        "fields": {
+            "name": "Antiemetics",
+            "description": "Medications to prevent nausea and vomiting"
+        }
+    },
+    {
+        "model": "pharmacy.medicinecategory",
+        "pk": 15,
+        "fields": {
+            "name": "Dermatological",
+            "description": "Medications for skin conditions"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 1,
+        "fields": {
+            "name": "Amoxicillin",
+            "generic_name": "Amoxicillin Trihydrate",
+            "category": 1,
+            "dosage_form": "capsule",
+            "strength": "500mg",
+            "manufacturer": "Generic Pharmaceuticals",
+            "description": "Broad-spectrum penicillin antibiotic for bacterial infections",
+            "contraindications": "Penicillin allergy, severe renal impairment",
+            "side_effects": "Nausea, diarrhea, rash, allergic reactions",
+            "storage_instructions": "Store below 25\u00c2\u00b0C, away from moisture",
+            "requires_prescription": true,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 2,
+        "fields": {
+            "name": "Azithromycin",
+            "generic_name": "Azithromycin Dihydrate",
+            "category": 1,
+            "dosage_form": "tablet",
+            "strength": "250mg",
+            "manufacturer": "Pfizer",
+            "description": "Macrolide antibiotic for respiratory and skin infections",
+            "contraindications": "Macrolide allergy, liver disease",
+            "side_effects": "Nausea, abdominal pain, diarrhea",
+            "storage_instructions": "Store at room temperature",
+            "requires_prescription": true,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 3,
+        "fields": {
+            "name": "Ciprofloxacin",
+            "generic_name": "Ciprofloxacin Hydrochloride",
+            "category": 1,
+            "dosage_form": "tablet",
+            "strength": "500mg",
+            "manufacturer": "Bayer",
+            "description": "Fluoroquinolone antibiotic for urinary and respiratory infections",
+            "contraindications": "Tendon disorders, myasthenia gravis",
+            "side_effects": "Nausea, headache, tendon problems",
+            "storage_instructions": "Store below 30\u00c2\u00b0C",
+            "requires_prescription": true,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 4,
+        "fields": {
+            "name": "Metronidazole",
+            "generic_name": "Metronidazole",
+            "category": 1,
+            "dosage_form": "tablet",
+            "strength": "400mg",
+            "manufacturer": "Generic Pharmaceuticals",
+            "description": "Antibiotic for anaerobic bacterial and parasitic infections",
+            "contraindications": "Alcohol consumption, first trimester pregnancy",
+            "side_effects": "Metallic taste, nausea, dark urine",
+            "storage_instructions": "Store below 25\u00c2\u00b0C, protect from light",
+            "requires_prescription": true,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 5,
+        "fields": {
+            "name": "Doxycycline",
+            "generic_name": "Doxycycline Hyclate",
+            "category": 1,
+            "dosage_form": "capsule",
+            "strength": "100mg",
+            "manufacturer": "Generic Pharmaceuticals",
+            "description": "Tetracycline antibiotic for various bacterial infections",
+            "contraindications": "Pregnancy, children under 8",
+            "side_effects": "Photosensitivity, nausea, esophageal irritation",
+            "storage_instructions": "Store at room temperature",
+            "requires_prescription": true,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 6,
+        "fields": {
+            "name": "Cephalexin",
+            "generic_name": "Cephalexin Monohydrate",
+            "category": 1,
+            "dosage_form": "capsule",
+            "strength": "500mg",
+            "manufacturer": "Generic Pharmaceuticals",
+            "description": "First-generation cephalosporin antibiotic",
+            "contraindications": "Cephalosporin allergy",
+            "side_effects": "Diarrhea, nausea, rash",
+            "storage_instructions": "Store below 25\u00c2\u00b0C",
+            "requires_prescription": true,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 7,
+        "fields": {
+            "name": "Co-Amoxiclav",
+            "generic_name": "Amoxicillin/Clavulanic Acid",
+            "category": 1,
+            "dosage_form": "tablet",
+            "strength": "625mg",
+            "manufacturer": "GSK",
+            "description": "Combination antibiotic for resistant bacterial infections",
+            "contraindications": "Penicillin allergy, liver dysfunction",
+            "side_effects": "Diarrhea, nausea, candidiasis",
+            "storage_instructions": "Store below 25\u00c2\u00b0C",
+            "requires_prescription": true,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 8,
+        "fields": {
+            "name": "Levofloxacin",
+            "generic_name": "Levofloxacin Hemihydrate",
+            "category": 1,
+            "dosage_form": "tablet",
+            "strength": "500mg",
+            "manufacturer": "Generic Pharmaceuticals",
+            "description": "Fluoroquinolone for respiratory and urinary infections",
+            "contraindications": "Tendon disorders, epilepsy",
+            "side_effects": "Nausea, dizziness, insomnia",
+            "storage_instructions": "Store at room temperature",
+            "requires_prescription": true,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 9,
+        "fields": {
+            "name": "Clarithromycin",
+            "generic_name": "Clarithromycin",
+            "category": 1,
+            "dosage_form": "tablet",
+            "strength": "500mg",
+            "manufacturer": "Abbott",
+            "description": "Macrolide antibiotic for respiratory infections",
+            "contraindications": "Macrolide allergy, QT prolongation",
+            "side_effects": "Taste disturbance, nausea, diarrhea",
+            "storage_instructions": "Store below 30\u00c2\u00b0C",
+            "requires_prescription": true,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 10,
+        "fields": {
+            "name": "Clindamycin",
+            "generic_name": "Clindamycin Hydrochloride",
+            "category": 1,
+            "dosage_form": "capsule",
+            "strength": "300mg",
+            "manufacturer": "Pfizer",
+            "description": "Lincosamide antibiotic for serious infections",
+            "contraindications": "History of colitis",
+            "side_effects": "Diarrhea, colitis, rash",
+            "storage_instructions": "Store at room temperature",
+            "requires_prescription": true,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 11,
+        "fields": {
+            "name": "Paracetamol",
+            "generic_name": "Acetaminophen",
+            "category": 2,
+            "dosage_form": "tablet",
+            "strength": "500mg",
+            "manufacturer": "Generic Pharmaceuticals",
+            "description": "Analgesic and antipyretic for pain and fever",
+            "contraindications": "Severe liver disease",
+            "side_effects": "Rare at normal doses, liver toxicity with overdose",
+            "storage_instructions": "Store below 25\u00c2\u00b0C",
+            "requires_prescription": false,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 12,
+        "fields": {
+            "name": "Ibuprofen",
+            "generic_name": "Ibuprofen",
+            "category": 2,
+            "dosage_form": "tablet",
+            "strength": "400mg",
+            "manufacturer": "Generic Pharmaceuticals",
+            "description": "NSAID for pain, inflammation, and fever",
+            "contraindications": "Peptic ulcer, aspirin allergy, renal impairment",
+            "side_effects": "GI upset, bleeding, renal effects",
+            "storage_instructions": "Store below 25\u00c2\u00b0C",
+            "requires_prescription": false,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 13,
+        "fields": {
+            "name": "Aspirin",
+            "generic_name": "Acetylsalicylic Acid",
+            "category": 2,
+            "dosage_form": "tablet",
+            "strength": "300mg",
+            "manufacturer": "Bayer",
+            "description": "NSAID for pain, fever, and cardiovascular protection",
+            "contraindications": "Children with viral illness, bleeding disorders",
+            "side_effects": "GI bleeding, tinnitus, allergic reactions",
+            "storage_instructions": "Store in dry place",
+            "requires_prescription": false,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 14,
+        "fields": {
+            "name": "Diclofenac Sodium",
+            "generic_name": "Diclofenac Sodium",
+            "category": 2,
+            "dosage_form": "tablet",
+            "strength": "50mg",
+            "manufacturer": "Novartis",
+            "description": "NSAID for pain and inflammation",
+            "contraindications": "Cardiovascular disease, GI ulcers",
+            "side_effects": "GI upset, headache, dizziness",
+            "storage_instructions": "Store below 30\u00c2\u00b0C",
+            "requires_prescription": true,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 15,
+        "fields": {
+            "name": "Tramadol",
+            "generic_name": "Tramadol Hydrochloride",
+            "category": 2,
+            "dosage_form": "capsule",
+            "strength": "50mg",
+            "manufacturer": "Generic Pharmaceuticals",
+            "description": "Opioid analgesic for moderate to severe pain",
+            "contraindications": "Seizure disorders, MAO inhibitors",
+            "side_effects": "Dizziness, nausea, constipation, dependence risk",
+            "storage_instructions": "Store at room temperature",
+            "requires_prescription": true,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 16,
+        "fields": {
+            "name": "Naproxen",
+            "generic_name": "Naproxen Sodium",
+            "category": 2,
+            "dosage_form": "tablet",
+            "strength": "500mg",
+            "manufacturer": "Generic Pharmaceuticals",
+            "description": "NSAID for pain and inflammation",
+            "contraindications": "GI ulcers, aspirin allergy",
+            "side_effects": "GI upset, headache, fluid retention",
+            "storage_instructions": "Store below 25\u00c2\u00b0C",
+            "requires_prescription": true,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 17,
+        "fields": {
+            "name": "Morphine Sulfate",
+            "generic_name": "Morphine Sulfate",
+            "category": 2,
+            "dosage_form": "injection",
+            "strength": "10mg/ml",
+            "manufacturer": "Generic Pharmaceuticals",
+            "description": "Opioid for severe pain management",
+            "contraindications": "Respiratory depression, paralytic ileus",
+            "side_effects": "Sedation, respiratory depression, constipation",
+            "storage_instructions": "Store below 25\u00c2\u00b0C, controlled substance",
+            "requires_prescription": true,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 18,
+        "fields": {
+            "name": "Codeine Phosphate",
+            "generic_name": "Codeine Phosphate",
+            "category": 2,
+            "dosage_form": "tablet",
+            "strength": "30mg",
+            "manufacturer": "Generic Pharmaceuticals",
+            "description": "Opioid for mild to moderate pain and cough",
+            "contraindications": "Respiratory conditions, children under 12",
+            "side_effects": "Constipation, drowsiness, nausea",
+            "storage_instructions": "Store at room temperature",
+            "requires_prescription": true,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 19,
+        "fields": {
+            "name": "Atorvastatin",
+            "generic_name": "Atorvastatin Calcium",
+            "category": 3,
+            "dosage_form": "tablet",
+            "strength": "20mg",
+            "manufacturer": "Pfizer",
+            "description": "Statin for cholesterol management",
+            "contraindications": "Active liver disease, pregnancy",
+            "side_effects": "Muscle pain, liver enzyme elevation",
+            "storage_instructions": "Store at room temperature",
+            "requires_prescription": true,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 20,
+        "fields": {
+            "name": "Amlodipine",
+            "generic_name": "Amlodipine Besylate",
+            "category": 3,
+            "dosage_form": "tablet",
+            "strength": "5mg",
+            "manufacturer": "Pfizer",
+            "description": "Calcium channel blocker for hypertension",
+            "contraindications": "Severe hypotension, cardiogenic shock",
+            "side_effects": "Edema, flushing, headache",
+            "storage_instructions": "Store below 30\u00c2\u00b0C",
+            "requires_prescription": true,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 21,
+        "fields": {
+            "name": "Metoprolol",
+            "generic_name": "Metoprolol Tartrate",
+            "category": 3,
+            "dosage_form": "tablet",
+            "strength": "50mg",
+            "manufacturer": "AstraZeneca",
+            "description": "Beta-blocker for hypertension and heart conditions",
+            "contraindications": "Severe bradycardia, heart block",
+            "side_effects": "Fatigue, bradycardia, cold extremities",
+            "storage_instructions": "Store below 25\u00c2\u00b0C",
+            "requires_prescription": true,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 22,
+        "fields": {
+            "name": "Lisinopril",
+            "generic_name": "Lisinopril Dihydrate",
+            "category": 3,
+            "dosage_form": "tablet",
+            "strength": "10mg",
+            "manufacturer": "Generic Pharmaceuticals",
+            "description": "ACE inhibitor for hypertension and heart failure",
+            "contraindications": "Angioedema history, pregnancy",
+            "side_effects": "Dry cough, dizziness, hyperkalemia",
+            "storage_instructions": "Store at room temperature",
+            "requires_prescription": true,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 23,
+        "fields": {
+            "name": "Losartan",
+            "generic_name": "Losartan Potassium",
+            "category": 3,
+            "dosage_form": "tablet",
+            "strength": "50mg",
+            "manufacturer": "Merck",
+            "description": "ARB for hypertension and diabetic nephropathy",
+            "contraindications": "Pregnancy, bilateral renal artery stenosis",
+            "side_effects": "Dizziness, hyperkalemia, fatigue",
+            "storage_instructions": "Store at room temperature",
+            "requires_prescription": true,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 24,
+        "fields": {
+            "name": "Clopidogrel",
+            "generic_name": "Clopidogrel Bisulfate",
+            "category": 3,
+            "dosage_form": "tablet",
+            "strength": "75mg",
+            "manufacturer": "Sanofi",
+            "description": "Antiplatelet for stroke and heart attack prevention",
+            "contraindications": "Active bleeding, severe liver disease",
+            "side_effects": "Bleeding, bruising, GI upset",
+            "storage_instructions": "Store at room temperature",
+            "requires_prescription": true,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 25,
+        "fields": {
+            "name": "Warfarin",
+            "generic_name": "Warfarin Sodium",
+            "category": 3,
+            "dosage_form": "tablet",
+            "strength": "5mg",
+            "manufacturer": "Generic Pharmaceuticals",
+            "description": "Anticoagulant for blood clot prevention",
+            "contraindications": "Active bleeding, pregnancy",
+            "side_effects": "Bleeding, bruising, requires INR monitoring",
+            "storage_instructions": "Store at room temperature, protect from light",
+            "requires_prescription": true,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 26,
+        "fields": {
+            "name": "Digoxin",
+            "generic_name": "Digoxin",
+            "category": 3,
+            "dosage_form": "tablet",
+            "strength": "0.25mg",
+            "manufacturer": "GSK",
+            "description": "Cardiac glycoside for heart failure and arrhythmias",
+            "contraindications": "Ventricular fibrillation, hypertrophic cardiomyopathy",
+            "side_effects": "Nausea, visual disturbances, arrhythmias",
+            "storage_instructions": "Store at room temperature",
+            "requires_prescription": true,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 27,
+        "fields": {
+            "name": "Nitroglycerin",
+            "generic_name": "Glyceryl Trinitrate",
+            "category": 3,
+            "dosage_form": "tablet",
+            "strength": "0.5mg",
+            "manufacturer": "Pfizer",
+            "description": "Nitrate for angina relief (sublingual)",
+            "contraindications": "Severe anemia, hypotension, PDE5 inhibitors",
+            "side_effects": "Headache, flushing, hypotension",
+            "storage_instructions": "Store in original container, protect from light",
+            "requires_prescription": true,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 28,
+        "fields": {
+            "name": "Furosemide",
+            "generic_name": "Furosemide",
+            "category": 3,
+            "dosage_form": "tablet",
+            "strength": "40mg",
+            "manufacturer": "Sanofi",
+            "description": "Loop diuretic for edema and hypertension",
+            "contraindications": "Anuria, severe electrolyte depletion",
+            "side_effects": "Electrolyte imbalance, dehydration, ototoxicity",
+            "storage_instructions": "Store below 25\u00c2\u00b0C, protect from light",
+            "requires_prescription": true,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 29,
+        "fields": {
+            "name": "Vitamin C",
+            "generic_name": "Ascorbic Acid",
+            "category": 4,
+            "dosage_form": "tablet",
+            "strength": "500mg",
+            "manufacturer": "Generic Pharmaceuticals",
+            "description": "Vitamin supplement for immune support",
+            "contraindications": "G6PD deficiency (high doses)",
+            "side_effects": "GI upset at high doses",
+            "storage_instructions": "Store in cool, dry place",
+            "requires_prescription": false,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 30,
+        "fields": {
+            "name": "Vitamin D3",
+            "generic_name": "Cholecalciferol",
+            "category": 4,
+            "dosage_form": "capsule",
+            "strength": "1000IU",
+            "manufacturer": "Generic Pharmaceuticals",
+            "description": "Vitamin D supplement for bone health",
+            "contraindications": "Hypercalcemia, sarcoidosis",
+            "side_effects": "Hypercalcemia at high doses",
+            "storage_instructions": "Store below 25\u00c2\u00b0C",
+            "requires_prescription": false,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 31,
+        "fields": {
+            "name": "Vitamin B Complex",
+            "generic_name": "B Vitamins Combination",
+            "category": 4,
+            "dosage_form": "tablet",
+            "strength": "Standard",
+            "manufacturer": "Generic Pharmaceuticals",
+            "description": "B vitamin supplement for energy and nerve function",
+            "contraindications": "Allergy to B vitamins",
+            "side_effects": "Bright yellow urine, rare allergic reactions",
+            "storage_instructions": "Store in cool, dry place",
+            "requires_prescription": false,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 32,
+        "fields": {
+            "name": "Iron + Folic Acid",
+            "generic_name": "Ferrous Sulfate/Folic Acid",
+            "category": 4,
+            "dosage_form": "tablet",
+            "strength": "200mg/0.5mg",
+            "manufacturer": "Generic Pharmaceuticals",
+            "description": "Iron and folate supplement for anemia",
+            "contraindications": "Hemochromatosis, hemolytic anemia",
+            "side_effects": "Constipation, dark stools, nausea",
+            "storage_instructions": "Store below 25\u00c2\u00b0C",
+            "requires_prescription": false,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 33,
+        "fields": {
+            "name": "Calcium + Vitamin D",
+            "generic_name": "Calcium Carbonate/Cholecalciferol",
+            "category": 4,
+            "dosage_form": "tablet",
+            "strength": "500mg/200IU",
+            "manufacturer": "Generic Pharmaceuticals",
+            "description": "Calcium and vitamin D for bone health",
+            "contraindications": "Hypercalcemia, kidney stones",
+            "side_effects": "Constipation, gas",
+            "storage_instructions": "Store in cool, dry place",
+            "requires_prescription": false,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 34,
+        "fields": {
+            "name": "Multivitamin",
+            "generic_name": "Multivitamin/Mineral Complex",
+            "category": 4,
+            "dosage_form": "tablet",
+            "strength": "Standard",
+            "manufacturer": "Generic Pharmaceuticals",
+            "description": "Daily multivitamin and mineral supplement",
+            "contraindications": "Specific vitamin allergies",
+            "side_effects": "GI upset, colored urine",
+            "storage_instructions": "Store in cool, dry place",
+            "requires_prescription": false,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 35,
+        "fields": {
+            "name": "Cetirizine",
+            "generic_name": "Cetirizine Hydrochloride",
+            "category": 5,
+            "dosage_form": "tablet",
+            "strength": "10mg",
+            "manufacturer": "Generic Pharmaceuticals",
+            "description": "Non-sedating antihistamine for allergies",
+            "contraindications": "Severe renal impairment",
+            "side_effects": "Drowsiness (mild), dry mouth",
+            "storage_instructions": "Store below 25\u00c2\u00b0C",
+            "requires_prescription": false,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 36,
+        "fields": {
+            "name": "Loratadine",
+            "generic_name": "Loratadine",
+            "category": 5,
+            "dosage_form": "tablet",
+            "strength": "10mg",
+            "manufacturer": "Generic Pharmaceuticals",
+            "description": "Non-sedating antihistamine for allergies",
+            "contraindications": "Severe liver impairment",
+            "side_effects": "Headache, dry mouth, fatigue",
+            "storage_instructions": "Store at room temperature",
+            "requires_prescription": false,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 37,
+        "fields": {
+            "name": "Chlorpheniramine",
+            "generic_name": "Chlorpheniramine Maleate",
+            "category": 5,
+            "dosage_form": "tablet",
+            "strength": "4mg",
+            "manufacturer": "Generic Pharmaceuticals",
+            "description": "First-generation antihistamine",
+            "contraindications": "Glaucoma, urinary retention",
+            "side_effects": "Drowsiness, dry mouth, urinary retention",
+            "storage_instructions": "Store below 25\u00c2\u00b0C",
+            "requires_prescription": false,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 38,
+        "fields": {
+            "name": "Diphenhydramine",
+            "generic_name": "Diphenhydramine Hydrochloride",
+            "category": 5,
+            "dosage_form": "capsule",
+            "strength": "25mg",
+            "manufacturer": "Generic Pharmaceuticals",
+            "description": "Antihistamine for allergies and sleep aid",
+            "contraindications": "Glaucoma, BPH, MAO inhibitors",
+            "side_effects": "Sedation, dry mouth, confusion in elderly",
+            "storage_instructions": "Store at room temperature",
+            "requires_prescription": false,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 39,
+        "fields": {
+            "name": "Fexofenadine",
+            "generic_name": "Fexofenadine Hydrochloride",
+            "category": 5,
+            "dosage_form": "tablet",
+            "strength": "180mg",
+            "manufacturer": "Sanofi",
+            "description": "Non-sedating antihistamine for allergies",
+            "contraindications": "None significant",
+            "side_effects": "Headache, back pain, nausea",
+            "storage_instructions": "Store below 25\u00c2\u00b0C",
+            "requires_prescription": false,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 40,
+        "fields": {
+            "name": "Omeprazole",
+            "generic_name": "Omeprazole",
+            "category": 6,
+            "dosage_form": "capsule",
+            "strength": "20mg",
+            "manufacturer": "AstraZeneca",
+            "description": "PPI for GERD and peptic ulcers",
+            "contraindications": "None significant",
+            "side_effects": "Headache, diarrhea, vitamin B12 deficiency (long-term)",
+            "storage_instructions": "Store below 25\u00c2\u00b0C",
+            "requires_prescription": true,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 41,
+        "fields": {
+            "name": "Pantoprazole",
+            "generic_name": "Pantoprazole Sodium",
+            "category": 6,
+            "dosage_form": "tablet",
+            "strength": "40mg",
+            "manufacturer": "Generic Pharmaceuticals",
+            "description": "PPI for acid-related disorders",
+            "contraindications": "None significant",
+            "side_effects": "Headache, diarrhea, nausea",
+            "storage_instructions": "Store below 30\u00c2\u00b0C",
+            "requires_prescription": true,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 42,
+        "fields": {
+            "name": "Ranitidine",
+            "generic_name": "Ranitidine Hydrochloride",
+            "category": 6,
+            "dosage_form": "tablet",
+            "strength": "150mg",
+            "manufacturer": "GSK",
+            "description": "H2 blocker for acid reduction",
+            "contraindications": "Porphyria",
+            "side_effects": "Headache, constipation, dizziness",
+            "storage_instructions": "Store below 25\u00c2\u00b0C, protect from light",
+            "requires_prescription": false,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 43,
+        "fields": {
+            "name": "Ondansetron",
+            "generic_name": "Ondansetron Hydrochloride",
+            "category": 6,
+            "dosage_form": "tablet",
+            "strength": "4mg",
+            "manufacturer": "Generic Pharmaceuticals",
+            "description": "Antiemetic for nausea and vomiting",
+            "contraindications": "Congenital long QT syndrome",
+            "side_effects": "Headache, constipation, QT prolongation",
+            "storage_instructions": "Store at room temperature",
+            "requires_prescription": true,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 44,
+        "fields": {
+            "name": "Metoclopramide",
+            "generic_name": "Metoclopramide Hydrochloride",
+            "category": 6,
+            "dosage_form": "tablet",
+            "strength": "10mg",
+            "manufacturer": "Generic Pharmaceuticals",
+            "description": "Antiemetic and prokinetic agent",
+            "contraindications": "GI obstruction, Parkinson's disease",
+            "side_effects": "Drowsiness, restlessness, tardive dyskinesia",
+            "storage_instructions": "Store below 25\u00c2\u00b0C",
+            "requires_prescription": true,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 45,
+        "fields": {
+            "name": "Loperamide",
+            "generic_name": "Loperamide Hydrochloride",
+            "category": 6,
+            "dosage_form": "capsule",
+            "strength": "2mg",
+            "manufacturer": "Johnson & Johnson",
+            "description": "Antidiarrheal medication",
+            "contraindications": "Bloody diarrhea, bacterial enterocolitis",
+            "side_effects": "Constipation, abdominal cramps",
+            "storage_instructions": "Store below 25\u00c2\u00b0C",
+            "requires_prescription": false,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 46,
+        "fields": {
+            "name": "Lactulose",
+            "generic_name": "Lactulose",
+            "category": 6,
+            "dosage_form": "syrup",
+            "strength": "10g/15ml",
+            "manufacturer": "Generic Pharmaceuticals",
+            "description": "Osmotic laxative for constipation",
+            "contraindications": "Galactosemia",
+            "side_effects": "Flatulence, abdominal cramps",
+            "storage_instructions": "Store at room temperature",
+            "requires_prescription": false,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 47,
+        "fields": {
+            "name": "Antacid Suspension",
+            "generic_name": "Aluminum/Magnesium Hydroxide",
+            "category": 6,
+            "dosage_form": "syrup",
+            "strength": "Standard",
+            "manufacturer": "Generic Pharmaceuticals",
+            "description": "Antacid for heartburn relief",
+            "contraindications": "Severe renal impairment",
+            "side_effects": "Constipation or diarrhea",
+            "storage_instructions": "Shake well, store below 25\u00c2\u00b0C",
+            "requires_prescription": false,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 48,
+        "fields": {
+            "name": "Salbutamol Inhaler",
+            "generic_name": "Salbutamol Sulfate",
+            "category": 7,
+            "dosage_form": "inhaler",
+            "strength": "100mcg/puff",
+            "manufacturer": "GSK",
+            "description": "Bronchodilator for asthma relief",
+            "contraindications": "None for acute relief",
+            "side_effects": "Tremor, palpitations, headache",
+            "storage_instructions": "Store below 25\u00c2\u00b0C, do not freeze",
+            "requires_prescription": true,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 49,
+        "fields": {
+            "name": "Budesonide Inhaler",
+            "generic_name": "Budesonide",
+            "category": 7,
+            "dosage_form": "inhaler",
+            "strength": "200mcg/puff",
+            "manufacturer": "AstraZeneca",
+            "description": "Inhaled corticosteroid for asthma",
+            "contraindications": "Active TB, fungal infections",
+            "side_effects": "Oral thrush, hoarseness",
+            "storage_instructions": "Store at room temperature",
+            "requires_prescription": true,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 50,
+        "fields": {
+            "name": "Montelukast",
+            "generic_name": "Montelukast Sodium",
+            "category": 7,
+            "dosage_form": "tablet",
+            "strength": "10mg",
+            "manufacturer": "Merck",
+            "description": "Leukotriene receptor antagonist for asthma",
+            "contraindications": "None significant",
+            "side_effects": "Headache, mood changes, GI upset",
+            "storage_instructions": "Store at room temperature, protect from light",
+            "requires_prescription": true,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 51,
+        "fields": {
+            "name": "Bromhexine",
+            "generic_name": "Bromhexine Hydrochloride",
+            "category": 7,
+            "dosage_form": "tablet",
+            "strength": "8mg",
+            "manufacturer": "Generic Pharmaceuticals",
+            "description": "Mucolytic for productive cough",
+            "contraindications": "Peptic ulcer",
+            "side_effects": "GI upset, nausea",
+            "storage_instructions": "Store below 25\u00c2\u00b0C",
+            "requires_prescription": false,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 52,
+        "fields": {
+            "name": "Dextromethorphan",
+            "generic_name": "Dextromethorphan Hydrobromide",
+            "category": 7,
+            "dosage_form": "syrup",
+            "strength": "15mg/5ml",
+            "manufacturer": "Generic Pharmaceuticals",
+            "description": "Cough suppressant for dry cough",
+            "contraindications": "MAO inhibitors, productive cough",
+            "side_effects": "Drowsiness, dizziness, nausea",
+            "storage_instructions": "Store at room temperature",
+            "requires_prescription": false,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 53,
+        "fields": {
+            "name": "Fluticasone Nasal Spray",
+            "generic_name": "Fluticasone Propionate",
+            "category": 7,
+            "dosage_form": "other",
+            "strength": "50mcg/spray",
+            "manufacturer": "GSK",
+            "description": "Nasal corticosteroid for allergic rhinitis",
+            "contraindications": "Untreated nasal infections",
+            "side_effects": "Nasal irritation, nosebleeds",
+            "storage_instructions": "Store at room temperature",
+            "requires_prescription": true,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 54,
+        "fields": {
+            "name": "Ambroxol",
+            "generic_name": "Ambroxol Hydrochloride",
+            "category": 7,
+            "dosage_form": "syrup",
+            "strength": "30mg/5ml",
+            "manufacturer": "Generic Pharmaceuticals",
+            "description": "Mucolytic expectorant for respiratory conditions",
+            "contraindications": "Peptic ulcer",
+            "side_effects": "GI upset, rash",
+            "storage_instructions": "Store below 25\u00c2\u00b0C",
+            "requires_prescription": false,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 55,
+        "fields": {
+            "name": "Metformin",
+            "generic_name": "Metformin Hydrochloride",
+            "category": 8,
+            "dosage_form": "tablet",
+            "strength": "500mg",
+            "manufacturer": "Generic Pharmaceuticals",
+            "description": "First-line treatment for type 2 diabetes",
+            "contraindications": "Renal impairment, contrast procedures",
+            "side_effects": "GI upset, lactic acidosis (rare)",
+            "storage_instructions": "Store below 25\u00c2\u00b0C",
+            "requires_prescription": true,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 56,
+        "fields": {
+            "name": "Glibenclamide",
+            "generic_name": "Glyburide",
+            "category": 8,
+            "dosage_form": "tablet",
+            "strength": "5mg",
+            "manufacturer": "Generic Pharmaceuticals",
+            "description": "Sulfonylurea for type 2 diabetes",
+            "contraindications": "Severe hepatic/renal impairment",
+            "side_effects": "Hypoglycemia, weight gain",
+            "storage_instructions": "Store at room temperature",
+            "requires_prescription": true,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 57,
+        "fields": {
+            "name": "Insulin Regular",
+            "generic_name": "Human Insulin Regular",
+            "category": 8,
+            "dosage_form": "injection",
+            "strength": "100IU/ml",
+            "manufacturer": "Novo Nordisk",
+            "description": "Short-acting insulin for diabetes",
+            "contraindications": "Hypoglycemia",
+            "side_effects": "Hypoglycemia, injection site reactions",
+            "storage_instructions": "Refrigerate, do not freeze",
+            "requires_prescription": true,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 58,
+        "fields": {
+            "name": "Insulin Glargine",
+            "generic_name": "Insulin Glargine",
+            "category": 8,
+            "dosage_form": "injection",
+            "strength": "100IU/ml",
+            "manufacturer": "Sanofi",
+            "description": "Long-acting insulin for diabetes",
+            "contraindications": "Hypoglycemia",
+            "side_effects": "Hypoglycemia, weight gain",
+            "storage_instructions": "Refrigerate, do not freeze",
+            "requires_prescription": true,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 59,
+        "fields": {
+            "name": "Glimepiride",
+            "generic_name": "Glimepiride",
+            "category": 8,
+            "dosage_form": "tablet",
+            "strength": "2mg",
+            "manufacturer": "Sanofi",
+            "description": "Sulfonylurea for type 2 diabetes",
+            "contraindications": "Diabetic ketoacidosis",
+            "side_effects": "Hypoglycemia, weight gain",
+            "storage_instructions": "Store at room temperature",
+            "requires_prescription": true,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 60,
+        "fields": {
+            "name": "Sitagliptin",
+            "generic_name": "Sitagliptin Phosphate",
+            "category": 8,
+            "dosage_form": "tablet",
+            "strength": "100mg",
+            "manufacturer": "Merck",
+            "description": "DPP-4 inhibitor for type 2 diabetes",
+            "contraindications": "Pancreatitis history",
+            "side_effects": "Upper respiratory infection, headache",
+            "storage_instructions": "Store at room temperature",
+            "requires_prescription": true,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 61,
+        "fields": {
+            "name": "Hydrochlorothiazide",
+            "generic_name": "Hydrochlorothiazide",
+            "category": 9,
+            "dosage_form": "tablet",
+            "strength": "25mg",
+            "manufacturer": "Generic Pharmaceuticals",
+            "description": "Thiazide diuretic for hypertension",
+            "contraindications": "Anuria, sulfonamide allergy",
+            "side_effects": "Electrolyte imbalance, hyperuricemia",
+            "storage_instructions": "Store at room temperature",
+            "requires_prescription": true,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 62,
+        "fields": {
+            "name": "Enalapril",
+            "generic_name": "Enalapril Maleate",
+            "category": 9,
+            "dosage_form": "tablet",
+            "strength": "10mg",
+            "manufacturer": "Merck",
+            "description": "ACE inhibitor for hypertension",
+            "contraindications": "Angioedema history, pregnancy",
+            "side_effects": "Dry cough, hyperkalemia, dizziness",
+            "storage_instructions": "Store below 25\u00c2\u00b0C",
+            "requires_prescription": true,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 63,
+        "fields": {
+            "name": "Valsartan",
+            "generic_name": "Valsartan",
+            "category": 9,
+            "dosage_form": "tablet",
+            "strength": "80mg",
+            "manufacturer": "Novartis",
+            "description": "ARB for hypertension and heart failure",
+            "contraindications": "Pregnancy, bilateral renal artery stenosis",
+            "side_effects": "Dizziness, hyperkalemia, fatigue",
+            "storage_instructions": "Store at room temperature",
+            "requires_prescription": true,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 64,
+        "fields": {
+            "name": "Nifedipine",
+            "generic_name": "Nifedipine",
+            "category": 9,
+            "dosage_form": "tablet",
+            "strength": "30mg",
+            "manufacturer": "Bayer",
+            "description": "Calcium channel blocker for hypertension",
+            "contraindications": "Severe aortic stenosis, acute MI",
+            "side_effects": "Flushing, headache, peripheral edema",
+            "storage_instructions": "Store below 25\u00c2\u00b0C, protect from light",
+            "requires_prescription": true,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 65,
+        "fields": {
+            "name": "Carvedilol",
+            "generic_name": "Carvedilol",
+            "category": 9,
+            "dosage_form": "tablet",
+            "strength": "25mg",
+            "manufacturer": "GSK",
+            "description": "Beta-blocker for hypertension and heart failure",
+            "contraindications": "Severe bradycardia, asthma",
+            "side_effects": "Dizziness, fatigue, weight gain",
+            "storage_instructions": "Store at room temperature",
+            "requires_prescription": true,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 66,
+        "fields": {
+            "name": "Sterile Gauze Pads",
+            "generic_name": "Sterile Cotton Gauze",
+            "category": 10,
+            "dosage_form": "other",
+            "strength": "10x10cm",
+            "manufacturer": "Medical Supplies Co",
+            "description": "Sterile gauze pads for wound dressing",
+            "contraindications": "None",
+            "side_effects": "None",
+            "storage_instructions": "Store in dry place",
+            "requires_prescription": false,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 67,
+        "fields": {
+            "name": "Adhesive Bandages",
+            "generic_name": "Adhesive Bandage Strips",
+            "category": 10,
+            "dosage_form": "other",
+            "strength": "Assorted",
+            "manufacturer": "Johnson & Johnson",
+            "description": "Self-adhesive bandages for minor wounds",
+            "contraindications": "Adhesive allergy",
+            "side_effects": "Skin irritation (rare)",
+            "storage_instructions": "Store in cool, dry place",
+            "requires_prescription": false,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 68,
+        "fields": {
+            "name": "Cotton Wool Roll",
+            "generic_name": "Absorbent Cotton",
+            "category": 10,
+            "dosage_form": "other",
+            "strength": "500g",
+            "manufacturer": "Medical Supplies Co",
+            "description": "Absorbent cotton for cleaning and dressing",
+            "contraindications": "None",
+            "side_effects": "None",
+            "storage_instructions": "Store in dry place",
+            "requires_prescription": false,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 69,
+        "fields": {
+            "name": "Surgical Tape",
+            "generic_name": "Medical Adhesive Tape",
+            "category": 10,
+            "dosage_form": "other",
+            "strength": "2.5cm x 5m",
+            "manufacturer": "3M Healthcare",
+            "description": "Medical tape for securing dressings",
+            "contraindications": "Adhesive allergy",
+            "side_effects": "Skin irritation",
+            "storage_instructions": "Store at room temperature",
+            "requires_prescription": false,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 70,
+        "fields": {
+            "name": "Povidone-Iodine Solution",
+            "generic_name": "Povidone-Iodine 10%",
+            "category": 10,
+            "dosage_form": "other",
+            "strength": "10%",
+            "manufacturer": "Generic Pharmaceuticals",
+            "description": "Antiseptic solution for wound cleaning",
+            "contraindications": "Iodine allergy, thyroid disorders",
+            "side_effects": "Skin staining, irritation",
+            "storage_instructions": "Store below 25\u00c2\u00b0C, protect from light",
+            "requires_prescription": false,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 71,
+        "fields": {
+            "name": "Hydrogen Peroxide",
+            "generic_name": "Hydrogen Peroxide 3%",
+            "category": 10,
+            "dosage_form": "other",
+            "strength": "3%",
+            "manufacturer": "Generic Pharmaceuticals",
+            "description": "Antiseptic for wound cleaning",
+            "contraindications": "Deep wounds",
+            "side_effects": "Skin irritation, foaming",
+            "storage_instructions": "Store in dark bottle, below 25\u00c2\u00b0C",
+            "requires_prescription": false,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 72,
+        "fields": {
+            "name": "Burn Gel",
+            "generic_name": "Aloe Vera/Lidocaine Gel",
+            "category": 10,
+            "dosage_form": "cream",
+            "strength": "Standard",
+            "manufacturer": "Medical Supplies Co",
+            "description": "Cooling gel for minor burns",
+            "contraindications": "Lidocaine allergy",
+            "side_effects": "Mild skin irritation",
+            "storage_instructions": "Store below 25\u00c2\u00b0C",
+            "requires_prescription": false,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 73,
+        "fields": {
+            "name": "Elastic Bandage",
+            "generic_name": "Elasticated Bandage",
+            "category": 10,
+            "dosage_form": "other",
+            "strength": "10cm x 4m",
+            "manufacturer": "Medical Supplies Co",
+            "description": "Compression bandage for sprains",
+            "contraindications": "Peripheral vascular disease",
+            "side_effects": "None if properly applied",
+            "storage_instructions": "Store in dry place",
+            "requires_prescription": false,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 74,
+        "fields": {
+            "name": "Triangular Bandage",
+            "generic_name": "Cotton Triangular Bandage",
+            "category": 10,
+            "dosage_form": "other",
+            "strength": "96x96x136cm",
+            "manufacturer": "Medical Supplies Co",
+            "description": "Sling and wound covering bandage",
+            "contraindications": "None",
+            "side_effects": "None",
+            "storage_instructions": "Store in dry place",
+            "requires_prescription": false,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 75,
+        "fields": {
+            "name": "Eye Wash Solution",
+            "generic_name": "Sterile Sodium Chloride 0.9%",
+            "category": 10,
+            "dosage_form": "drops",
+            "strength": "0.9%",
+            "manufacturer": "Generic Pharmaceuticals",
+            "description": "Sterile solution for eye irrigation",
+            "contraindications": "None",
+            "side_effects": "None",
+            "storage_instructions": "Store at room temperature",
+            "requires_prescription": false,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 76,
+        "fields": {
+            "name": "Medical Scissors",
+            "generic_name": "Stainless Steel Scissors",
+            "category": 10,
+            "dosage_form": "other",
+            "strength": "14cm",
+            "manufacturer": "Medical Supplies Co",
+            "description": "Bandage scissors for first aid",
+            "contraindications": "None",
+            "side_effects": "None",
+            "storage_instructions": "Keep clean and dry",
+            "requires_prescription": false,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 77,
+        "fields": {
+            "name": "Disposable Gloves",
+            "generic_name": "Latex-Free Examination Gloves",
+            "category": 10,
+            "dosage_form": "other",
+            "strength": "Medium",
+            "manufacturer": "Medical Supplies Co",
+            "description": "Disposable gloves for hygiene",
+            "contraindications": "Latex allergy (if latex)",
+            "side_effects": "Skin irritation (rare)",
+            "storage_instructions": "Store in cool, dry place",
+            "requires_prescription": false,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 78,
+        "fields": {
+            "name": "Epinephrine Injection",
+            "generic_name": "Epinephrine (Adrenaline)",
+            "category": 11,
+            "dosage_form": "injection",
+            "strength": "1mg/ml",
+            "manufacturer": "Generic Pharmaceuticals",
+            "description": "Emergency treatment for anaphylaxis and cardiac arrest",
+            "contraindications": "None in emergency situations",
+            "side_effects": "Palpitations, tremor, anxiety",
+            "storage_instructions": "Store below 25\u00c2\u00b0C, protect from light",
+            "requires_prescription": true,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 79,
+        "fields": {
+            "name": "Atropine Injection",
+            "generic_name": "Atropine Sulfate",
+            "category": 11,
+            "dosage_form": "injection",
+            "strength": "0.6mg/ml",
+            "manufacturer": "Generic Pharmaceuticals",
+            "description": "Anticholinergic for bradycardia and poisoning",
+            "contraindications": "Narrow-angle glaucoma (relative)",
+            "side_effects": "Dry mouth, tachycardia, urinary retention",
+            "storage_instructions": "Store at room temperature",
+            "requires_prescription": true,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 80,
+        "fields": {
+            "name": "Hydrocortisone Injection",
+            "generic_name": "Hydrocortisone Sodium Succinate",
+            "category": 11,
+            "dosage_form": "injection",
+            "strength": "100mg",
+            "manufacturer": "Pfizer",
+            "description": "Corticosteroid for severe allergic reactions",
+            "contraindications": "Systemic fungal infections",
+            "side_effects": "Hyperglycemia, fluid retention",
+            "storage_instructions": "Store at room temperature",
+            "requires_prescription": true,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 81,
+        "fields": {
+            "name": "Diazepam Injection",
+            "generic_name": "Diazepam",
+            "category": 11,
+            "dosage_form": "injection",
+            "strength": "5mg/ml",
+            "manufacturer": "Roche",
+            "description": "Benzodiazepine for seizures and severe anxiety",
+            "contraindications": "Respiratory depression, myasthenia gravis",
+            "side_effects": "Sedation, respiratory depression",
+            "storage_instructions": "Store below 25\u00c2\u00b0C, protect from light",
+            "requires_prescription": true,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 82,
+        "fields": {
+            "name": "Dextrose 50% Injection",
+            "generic_name": "Dextrose Monohydrate",
+            "category": 11,
+            "dosage_form": "injection",
+            "strength": "50%",
+            "manufacturer": "Generic Pharmaceuticals",
+            "description": "Hypertonic glucose for severe hypoglycemia",
+            "contraindications": "Diabetic coma with unknown cause",
+            "side_effects": "Hyperglycemia, phlebitis",
+            "storage_instructions": "Store at room temperature",
+            "requires_prescription": true,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 83,
+        "fields": {
+            "name": "Normal Saline",
+            "generic_name": "Sodium Chloride 0.9%",
+            "category": 11,
+            "dosage_form": "injection",
+            "strength": "0.9%",
+            "manufacturer": "B. Braun",
+            "description": "IV fluid for hydration and drug dilution",
+            "contraindications": "Severe sodium retention",
+            "side_effects": "Fluid overload if excessive",
+            "storage_instructions": "Store at room temperature",
+            "requires_prescription": true,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 84,
+        "fields": {
+            "name": "Activated Charcoal",
+            "generic_name": "Activated Charcoal",
+            "category": 11,
+            "dosage_form": "other",
+            "strength": "50g",
+            "manufacturer": "Generic Pharmaceuticals",
+            "description": "Adsorbent for poisoning treatment",
+            "contraindications": "Corrosive ingestion, absent gag reflex",
+            "side_effects": "Constipation, black stools",
+            "storage_instructions": "Store in dry place",
+            "requires_prescription": true,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 85,
+        "fields": {
+            "name": "Naloxone Injection",
+            "generic_name": "Naloxone Hydrochloride",
+            "category": 11,
+            "dosage_form": "injection",
+            "strength": "0.4mg/ml",
+            "manufacturer": "Generic Pharmaceuticals",
+            "description": "Opioid antagonist for overdose reversal",
+            "contraindications": "None in emergency",
+            "side_effects": "Withdrawal symptoms in opioid-dependent",
+            "storage_instructions": "Store at room temperature",
+            "requires_prescription": true,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 86,
+        "fields": {
+            "name": "Adenosine Injection",
+            "generic_name": "Adenosine",
+            "category": 11,
+            "dosage_form": "injection",
+            "strength": "6mg/2ml",
+            "manufacturer": "Generic Pharmaceuticals",
+            "description": "Antiarrhythmic for SVT",
+            "contraindications": "2nd/3rd degree heart block, sick sinus",
+            "side_effects": "Flushing, dyspnea, chest pressure",
+            "storage_instructions": "Refrigerate, do not freeze",
+            "requires_prescription": true,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 87,
+        "fields": {
+            "name": "Amiodarone Injection",
+            "generic_name": "Amiodarone Hydrochloride",
+            "category": 11,
+            "dosage_form": "injection",
+            "strength": "150mg/3ml",
+            "manufacturer": "Sanofi",
+            "description": "Antiarrhythmic for ventricular arrhythmias",
+            "contraindications": "Severe sinus node dysfunction, iodine allergy",
+            "side_effects": "Hypotension, bradycardia, phlebitis",
+            "storage_instructions": "Store at room temperature, protect from light",
+            "requires_prescription": true,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 88,
+        "fields": {
+            "name": "Lidocaine Injection",
+            "generic_name": "Lidocaine Hydrochloride",
+            "category": 12,
+            "dosage_form": "injection",
+            "strength": "2%",
+            "manufacturer": "AstraZeneca",
+            "description": "Local anesthetic for procedures",
+            "contraindications": "Amide anesthetic allergy, severe heart block",
+            "side_effects": "Numbness, dizziness, bradycardia",
+            "storage_instructions": "Store at room temperature",
+            "requires_prescription": true,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 89,
+        "fields": {
+            "name": "Bupivacaine Injection",
+            "generic_name": "Bupivacaine Hydrochloride",
+            "category": 12,
+            "dosage_form": "injection",
+            "strength": "0.5%",
+            "manufacturer": "AstraZeneca",
+            "description": "Long-acting local anesthetic",
+            "contraindications": "Severe hypotension, IV use",
+            "side_effects": "Hypotension, bradycardia, CNS toxicity",
+            "storage_instructions": "Store at room temperature",
+            "requires_prescription": true,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 90,
+        "fields": {
+            "name": "Propofol",
+            "generic_name": "Propofol",
+            "category": 12,
+            "dosage_form": "injection",
+            "strength": "10mg/ml",
+            "manufacturer": "Fresenius Kabi",
+            "description": "IV anesthetic for sedation and anesthesia",
+            "contraindications": "Egg/soy allergy (contains)",
+            "side_effects": "Hypotension, respiratory depression",
+            "storage_instructions": "Refrigerate, shake before use",
+            "requires_prescription": true,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 91,
+        "fields": {
+            "name": "Ketamine Injection",
+            "generic_name": "Ketamine Hydrochloride",
+            "category": 12,
+            "dosage_form": "injection",
+            "strength": "50mg/ml",
+            "manufacturer": "Pfizer",
+            "description": "Dissociative anesthetic",
+            "contraindications": "Severe hypertension, eclampsia",
+            "side_effects": "Emergence reactions, hypertension",
+            "storage_instructions": "Store at room temperature, controlled substance",
+            "requires_prescription": true,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 92,
+        "fields": {
+            "name": "Midazolam Injection",
+            "generic_name": "Midazolam Hydrochloride",
+            "category": 12,
+            "dosage_form": "injection",
+            "strength": "5mg/ml",
+            "manufacturer": "Roche",
+            "description": "Benzodiazepine for sedation",
+            "contraindications": "Severe respiratory depression",
+            "side_effects": "Respiratory depression, amnesia",
+            "storage_instructions": "Store at room temperature, controlled substance",
+            "requires_prescription": true,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 93,
+        "fields": {
+            "name": "Fentanyl Injection",
+            "generic_name": "Fentanyl Citrate",
+            "category": 12,
+            "dosage_form": "injection",
+            "strength": "50mcg/ml",
+            "manufacturer": "Janssen",
+            "description": "Opioid analgesic for anesthesia",
+            "contraindications": "Respiratory depression, MAO inhibitors",
+            "side_effects": "Respiratory depression, muscle rigidity",
+            "storage_instructions": "Store at room temperature, controlled substance",
+            "requires_prescription": true,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 94,
+        "fields": {
+            "name": "Sertraline",
+            "generic_name": "Sertraline Hydrochloride",
+            "category": 13,
+            "dosage_form": "tablet",
+            "strength": "50mg",
+            "manufacturer": "Pfizer",
+            "description": "SSRI antidepressant",
+            "contraindications": "MAO inhibitors, pimozide",
+            "side_effects": "Nausea, insomnia, sexual dysfunction",
+            "storage_instructions": "Store at room temperature",
+            "requires_prescription": true,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 95,
+        "fields": {
+            "name": "Fluoxetine",
+            "generic_name": "Fluoxetine Hydrochloride",
+            "category": 13,
+            "dosage_form": "capsule",
+            "strength": "20mg",
+            "manufacturer": "Eli Lilly",
+            "description": "SSRI antidepressant",
+            "contraindications": "MAO inhibitors, pimozide",
+            "side_effects": "Nausea, anxiety, insomnia",
+            "storage_instructions": "Store at room temperature",
+            "requires_prescription": true,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 96,
+        "fields": {
+            "name": "Amitriptyline",
+            "generic_name": "Amitriptyline Hydrochloride",
+            "category": 13,
+            "dosage_form": "tablet",
+            "strength": "25mg",
+            "manufacturer": "Generic Pharmaceuticals",
+            "description": "Tricyclic antidepressant",
+            "contraindications": "Recent MI, MAO inhibitors",
+            "side_effects": "Sedation, dry mouth, weight gain",
+            "storage_instructions": "Store at room temperature",
+            "requires_prescription": true,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 97,
+        "fields": {
+            "name": "Escitalopram",
+            "generic_name": "Escitalopram Oxalate",
+            "category": 13,
+            "dosage_form": "tablet",
+            "strength": "10mg",
+            "manufacturer": "Lundbeck",
+            "description": "SSRI antidepressant for depression and anxiety",
+            "contraindications": "MAO inhibitors, QT prolongation",
+            "side_effects": "Nausea, headache, insomnia",
+            "storage_instructions": "Store at room temperature",
+            "requires_prescription": true,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 98,
+        "fields": {
+            "name": "Domperidone",
+            "generic_name": "Domperidone",
+            "category": 14,
+            "dosage_form": "tablet",
+            "strength": "10mg",
+            "manufacturer": "Janssen",
+            "description": "Antiemetic for nausea and vomiting",
+            "contraindications": "GI bleeding, prolactinoma",
+            "side_effects": "Dry mouth, headache, galactorrhea",
+            "storage_instructions": "Store below 25\u00c2\u00b0C",
+            "requires_prescription": true,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 99,
+        "fields": {
+            "name": "Prochlorperazine",
+            "generic_name": "Prochlorperazine Maleate",
+            "category": 14,
+            "dosage_form": "tablet",
+            "strength": "5mg",
+            "manufacturer": "Generic Pharmaceuticals",
+            "description": "Antiemetic for severe nausea",
+            "contraindications": "CNS depression, Parkinson's",
+            "side_effects": "Drowsiness, extrapyramidal symptoms",
+            "storage_instructions": "Store below 25\u00c2\u00b0C, protect from light",
+            "requires_prescription": true,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 100,
+        "fields": {
+            "name": "Granisetron",
+            "generic_name": "Granisetron Hydrochloride",
+            "category": 14,
+            "dosage_form": "tablet",
+            "strength": "1mg",
+            "manufacturer": "Roche",
+            "description": "5-HT3 antagonist for chemotherapy-induced nausea",
+            "contraindications": "Hypersensitivity",
+            "side_effects": "Headache, constipation, asthenia",
+            "storage_instructions": "Store at room temperature",
+            "requires_prescription": true,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 101,
+        "fields": {
+            "name": "Hydrocortisone Cream",
+            "generic_name": "Hydrocortisone 1%",
+            "category": 15,
+            "dosage_form": "cream",
+            "strength": "1%",
+            "manufacturer": "Generic Pharmaceuticals",
+            "description": "Topical corticosteroid for skin inflammation",
+            "contraindications": "Skin infections (untreated)",
+            "side_effects": "Skin thinning, burning",
+            "storage_instructions": "Store below 25\u00c2\u00b0C",
+            "requires_prescription": false,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 102,
+        "fields": {
+            "name": "Clotrimazole Cream",
+            "generic_name": "Clotrimazole 1%",
+            "category": 15,
+            "dosage_form": "cream",
+            "strength": "1%",
+            "manufacturer": "Bayer",
+            "description": "Antifungal for skin infections",
+            "contraindications": "Hypersensitivity",
+            "side_effects": "Local irritation, burning",
+            "storage_instructions": "Store below 25\u00c2\u00b0C",
+            "requires_prescription": false,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 103,
+        "fields": {
+            "name": "Mupirocin Ointment",
+            "generic_name": "Mupirocin 2%",
+            "category": 15,
+            "dosage_form": "cream",
+            "strength": "2%",
+            "manufacturer": "GSK",
+            "description": "Topical antibiotic for skin infections",
+            "contraindications": "Hypersensitivity",
+            "side_effects": "Burning, stinging, itching",
+            "storage_instructions": "Store below 25\u00c2\u00b0C",
+            "requires_prescription": true,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 104,
+        "fields": {
+            "name": "Calamine Lotion",
+            "generic_name": "Calamine/Zinc Oxide",
+            "category": 15,
+            "dosage_form": "other",
+            "strength": "Standard",
+            "manufacturer": "Generic Pharmaceuticals",
+            "description": "Soothing lotion for itching and irritation",
+            "contraindications": "None significant",
+            "side_effects": "Skin dryness",
+            "storage_instructions": "Shake well, store at room temperature",
+            "requires_prescription": false,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "pharmacy.medicine",
+        "pk": 105,
+        "fields": {
+            "name": "Betamethasone Cream",
+            "generic_name": "Betamethasone Valerate 0.1%",
+            "category": 15,
+            "dosage_form": "cream",
+            "strength": "0.1%",
+            "manufacturer": "GSK",
+            "description": "Potent topical corticosteroid",
+            "contraindications": "Skin infections, rosacea",
+            "side_effects": "Skin atrophy, striae",
+            "storage_instructions": "Store below 25\u00c2\u00b0C",
+            "requires_prescription": true,
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z"
+        }
+    }
+]

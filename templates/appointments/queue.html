@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Appointment Queue - HMS{% endblock %}
+
+{% block content %}
+<div class="space-y-6 animate-fade-in">
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-800">Today's Queue</h1>
+            <p class="text-gray-500 mt-1">{{ today|date:"l, F d, Y" }}</p>
+        </div>
+        <a href="{% url 'appointments:book_for_patient' %}" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            New Appointment
+        </a>
+    </div>
+
+    <!-- Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+            <p class="text-sm text-gray-500">Total Appointments</p>
+            <p class="text-2xl font-bold text-gray-800">{{ queue|length }}</p>
+        </div>
+        <div class="bg-orange-50 rounded-xl border border-orange-100 p-4">
+            <p class="text-sm text-orange-600">Waiting</p>
+            <p class="text-2xl font-bold text-orange-700">{{ queue|length }}</p>
+        </div>
+        <div class="bg-blue-50 rounded-xl border border-blue-100 p-4">
+            <p class="text-sm text-blue-600">In Progress</p>
+            <p class="text-2xl font-bold text-blue-700">0</p>
+        </div>
+        <div class="bg-green-50 rounded-xl border border-green-100 p-4">
+            <p class="text-sm text-green-600">Completed</p>
+            <p class="text-2xl font-bold text-green-700">0</p>
+        </div>
+    </div>
+
+    <!-- Queue Table -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-100">
+            <h2 class="text-lg font-semibold text-gray-800">Patient Queue</h2>
+        </div>
+
+        {% if queue %}
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Queue #</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Patient</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Doctor</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    {% for appointment in queue %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            {% if appointment.queue_number %}
+                            <span class="inline-flex items-center justify-center w-10 h-10 rounded-full
+                                {% if appointment.status == 'checked_in' %}bg-orange-100 text-orange-700
+                                {% elif appointment.status == 'in_progress' %}bg-blue-100 text-blue-700
+                                {% elif appointment.status == 'completed' %}bg-green-100 text-green-700
+                                {% else %}bg-gray-100 text-gray-700{% endif %} font-bold">
+                                {{ appointment.queue_number }}
+                            </span>
+                            {% else %}
+                            <span class="text-gray-400">--</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div>
+                                <p class="font-medium text-gray-800">{{ appointment.patient.get_full_name }}</p>
+                                <p class="text-sm text-gray-500">{{ appointment.patient.phone|default:"No phone" }}</p>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div>
+                                <p class="font-medium text-gray-800">Dr. {{ appointment.doctor.get_full_name }}</p>
+                                {% if appointment.department %}
+                                <p class="text-sm text-gray-500">{{ appointment.department.name }}</p>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-gray-600">
+                            {{ appointment.scheduled_time|time:"H:i" }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 py-1 text-xs font-medium rounded-full
+                                {% if appointment.status == 'scheduled' %}bg-blue-100 text-blue-800
+                                {% elif appointment.status == 'confirmed' %}bg-green-100 text-green-800
+                                {% elif appointment.status == 'checked_in' %}bg-orange-100 text-orange-800
+                                {% elif appointment.status == 'in_progress' %}bg-purple-100 text-purple-800
+                                {% elif appointment.status == 'completed' %}bg-gray-100 text-gray-800
+                                {% elif appointment.status == 'cancelled' %}bg-red-100 text-red-800
+                                {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                {{ appointment.get_status_display }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center space-x-2">
+                                {% if appointment.status == 'scheduled' or appointment.status == 'confirmed' %}
+                                <a href="{% url 'appointments:check_in' appointment.pk %}"
+                                   class="px-3 py-1.5 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors">
+                                    Check In
+                                </a>
+                                {% endif %}
+                                <a href="{% url 'appointments:detail' appointment.pk %}"
+                                   class="px-3 py-1.5 border border-gray-300 text-gray-700 text-sm rounded-lg hover:bg-gray-50 transition-colors">
+                                    Details
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="p-12 text-center">
+            <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+            <h3 class="text-lg font-medium text-gray-800 mb-2">No appointments today</h3>
+            <p class="text-gray-500">There are no appointments scheduled for today.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

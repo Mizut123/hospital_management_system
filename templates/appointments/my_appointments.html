@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}My Appointments - HMS{% endblock %}
+
+{% block content %}
+<div class="space-y-6 animate-fade-in">
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-800">My Appointments</h1>
+            <p class="text-gray-500 mt-1">View and manage your scheduled appointments</p>
+        </div>
+        <a href="{% url 'appointments:book' %}" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            Book New Appointment
+        </a>
+    </div>
+
+    <!-- Appointments List -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100">
+        {% if appointments %}
+        <div class="divide-y divide-gray-100">
+            {% for appointment in appointments %}
+            <div class="p-6 hover:bg-gray-50 transition-colors">
+                <div class="flex items-start justify-between">
+                    <div class="flex items-start space-x-4">
+                        <!-- Date Badge -->
+                        <div class="flex-shrink-0 w-16 h-16 bg-blue-100 rounded-xl flex flex-col items-center justify-center">
+                            <span class="text-xs font-medium text-blue-600">{{ appointment.scheduled_date|date:"M" }}</span>
+                            <span class="text-2xl font-bold text-blue-700">{{ appointment.scheduled_date|date:"d" }}</span>
+                        </div>
+
+                        <div>
+                            <div class="flex items-center space-x-2">
+                                <h3 class="font-semibold text-gray-800">Dr. {{ appointment.doctor.get_full_name }}</h3>
+                                <span class="px-2 py-0.5 text-xs font-medium rounded-full
+                                    {% if appointment.status == 'scheduled' %}bg-blue-100 text-blue-800
+                                    {% elif appointment.status == 'confirmed' %}bg-green-100 text-green-800
+                                    {% elif appointment.status == 'completed' %}bg-gray-100 text-gray-800
+                                    {% elif appointment.status == 'cancelled' %}bg-red-100 text-red-800
+                                    {% elif appointment.status == 'checked_in' %}bg-orange-100 text-orange-800
+                                    {% elif appointment.status == 'in_progress' %}bg-purple-100 text-purple-800
+                                    {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                    {{ appointment.get_status_display }}
+                                </span>
+                            </div>
+                            {% if appointment.department %}
+                            <p class="text-sm text-gray-500">{{ appointment.department.name }}</p>
+                            {% endif %}
+                            <p class="text-sm text-gray-600 mt-1">
+                                <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                {{ appointment.scheduled_time|time:"H:i" }}
+                            </p>
+                            {% if appointment.reason %}
+                            <p class="text-sm text-gray-500 mt-2">{{ appointment.reason|truncatewords:20 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="flex items-center space-x-2">
+                        <a href="{% url 'appointments:detail' appointment.pk %}"
+                           class="px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors text-sm font-medium">
+                            View Details
+                        </a>
+                        {% if appointment.status in 'scheduled,confirmed' %}
+                        <a href="{% url 'appointments:cancel' appointment.pk %}"
+                           class="px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors text-sm font-medium"
+                           onclick="return confirm('Are you sure you want to cancel this appointment?')">
+                            Cancel
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if appointment.queue_number and appointment.status == 'checked_in' %}
+                <div class="mt-4 p-3 bg-orange-50 rounded-lg flex items-center justify-between">
+                    <div class="flex items-center">
+                        <span class="text-orange-600 font-medium">Queue Number: {{ appointment.queue_number }}</span>
+                        {% if appointment.estimated_wait %}
+                        <span class="ml-4 text-orange-500">Estimated wait: {{ appointment.estimated_wait }} minutes</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+        <div class="px-6 py-4 border-t border-gray-100 flex items-center justify-between">
+            <p class="text-sm text-gray-500">
+                Showing {{ page_obj.start_index }} - {{ page_obj.end_index }} of {{ page_obj.paginator.count }} appointments
+            </p>
+            <div class="flex items-center space-x-2">
+                {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}" class="px-3 py-1 border border-gray-300 rounded-lg hover:bg-gray-50">Previous</a>
+                {% endif %}
+                {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}" class="px-3 py-1 border border-gray-300 rounded-lg hover:bg-gray-50">Next</a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% else %}
+        <div class="p-12 text-center">
+            <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+            </svg>
+            <h3 class="text-lg font-medium text-gray-800 mb-2">No appointments yet</h3>
+            <p class="text-gray-500 mb-6">You haven't booked any appointments.</p>
+            <a href="{% url 'appointments:book' %}" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                Book Your First Appointment
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

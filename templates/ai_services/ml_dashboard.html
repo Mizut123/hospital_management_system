@@ -1,0 +1,574 @@
+{% extends 'base.html' %}
+
+{% block title %}ML Dashboard - HMS{% endblock %}
+{% block page_title %}Machine Learning Dashboard{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+        <div>
+            <h2 class="text-2xl font-bold text-gray-800">ML Model Dashboard</h2>
+            <p class="text-gray-500">Track model accuracy, training data, and version history</p>
+        </div>
+        <div class="flex items-center space-x-3">
+            <a href="{% url 'ai_services:predict' %}" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm font-medium text-gray-700">
+                Disease Prediction
+            </a>
+            <form method="post" action="{% url 'ai_services:retrain' %}">
+                {% csrf_token %}
+                <button type="submit" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm font-medium"
+                        onclick="return confirm('Train a new model version? This may take a moment.')">
+                    Retrain Model
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- Active Model -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div class="flex items-center justify-between mb-3">
+                <span class="text-sm font-medium text-gray-500">Active Model</span>
+                {% if active_model %}
+                <span class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></span>
+                {% else %}
+                <span class="w-3 h-3 bg-yellow-500 rounded-full"></span>
+                {% endif %}
+            </div>
+            <p class="text-2xl font-bold text-gray-800">{{ active_model.version|default:"None" }}</p>
+            {% if active_model %}
+            <p class="text-sm text-gray-500 mt-1">{{ active_model.num_classes }} diseases | {{ active_model.feature_count }} features</p>
+            {% else %}
+            <p class="text-sm text-yellow-600 mt-1">No model trained yet</p>
+            {% endif %}
+        </div>
+
+        <!-- Model Accuracy -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <span class="text-sm font-medium text-gray-500">Model Accuracy</span>
+            <p class="text-2xl font-bold mt-3 {% if active_model.accuracy >= 0.7 %}text-green-600{% elif active_model.accuracy >= 0.5 %}text-yellow-600{% else %}text-gray-800{% endif %}">
+                {% if active_model %}{{ active_model.accuracy|floatformat:1 }}%{% else %}--{% endif %}
+            </p>
+            {% if active_model %}
+            <p class="text-sm text-gray-500 mt-1">F1: {{ active_model.f1_score|floatformat:2|default:"--" }}</p>
+            {% endif %}
+        </div>
+
+        <!-- Training Data -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <span class="text-sm font-medium text-gray-500">Training Samples</span>
+            <p class="text-2xl font-bold text-gray-800 mt-3">{{ total_training }}</p>
+            <div class="flex items-center mt-1">
+                <span class="text-sm text-orange-600 font-medium">{{ pending_training }} pending</span>
+                <span class="text-xs text-gray-400 ml-2">(retrain at {{ retrain_threshold }})</span>
+            </div>
+        </div>
+
+        <!-- Prediction Accuracy -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <span class="text-sm font-medium text-gray-500">Prediction Accuracy</span>
+            <p class="text-2xl font-bold text-gray-800 mt-3">{{ prediction_accuracy }}%</p>
+            <p class="text-sm text-gray-500 mt-1">{{ correct_predictions }}/{{ total_training }} correct</p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Accuracy Over Time Chart -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Model Accuracy Over Time</h3>
+            <canvas id="accuracyChart" height="250"></canvas>
+            {% if not model_versions %}
+            <div class="flex items-center justify-center h-48 text-gray-400">
+                <p>No model versions yet. Train your first model to see accuracy trends.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Disease Distribution -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Disease Distribution in Training Data</h3>
+            <canvas id="diseaseChart" height="250"></canvas>
+            {% if not disease_distribution %}
+            <div class="flex items-center justify-center h-48 text-gray-400">
+                <p>No training data yet. Confirm diagnoses to build the dataset.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- ML Evaluation Charts (Active Model) -->
+    {% if active_model %}
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Feature Importance -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-1">Feature Importance (Random Forest)</h3>
+            <p class="text-xs text-gray-400 mb-4">Top 20 features ranked by Gini importance - {{ active_model.version }}</p>
+            <canvas id="featureImportanceChart" height="300"></canvas>
+        </div>
+
+        <!-- Per-Class Precision / Recall / F1 -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-1">Per-Class Metrics</h3>
+            <p class="text-xs text-gray-400 mb-4">Precision, Recall, and F1-Score per disease class - {{ active_model.version }}</p>
+            <canvas id="perClassChart" height="300"></canvas>
+        </div>
+    </div>
+
+    <!-- Confusion Matrix Heatmap -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h3 class="text-lg font-semibold text-gray-800 mb-1">Confusion Matrix Heatmap</h3>
+        <p class="text-xs text-gray-400 mb-4">Predicted vs Actual disease classification on test set - {{ active_model.version }}</p>
+        <div class="overflow-x-auto">
+            <canvas id="confusionMatrixChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Per-Class Metrics Table -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">Classification Report</h3>
+        <div class="overflow-x-auto" id="classificationReportTable"></div>
+    </div>
+    {% endif %}
+
+    <!-- Retrain Progress Bar -->
+    {% if total_training > 0 %}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <div class="flex items-center justify-between mb-2">
+            <h3 class="text-sm font-semibold text-gray-700">Next Auto-Retrain Progress</h3>
+            <span class="text-sm text-gray-500">{{ pending_training }} / {{ retrain_threshold }} new samples</span>
+        </div>
+        <div class="h-4 bg-gray-200 rounded-full overflow-hidden">
+            {% widthratio pending_training retrain_threshold 100 as progress %}
+            <div class="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all duration-500"
+                 style="width: {% widthratio pending_training retrain_threshold 100 %}%"></div>
+        </div>
+        <p class="text-xs text-gray-400 mt-2">
+            The model automatically retrains after {{ retrain_threshold }} new confirmed diagnoses are collected.
+        </p>
+    </div>
+    {% endif %}
+
+    <!-- Model Version History -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">Model Version History</h3>
+        {% if model_versions %}
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="bg-gray-50">
+                        <th class="px-4 py-3 text-left font-semibold text-gray-600">Version</th>
+                        <th class="px-4 py-3 text-left font-semibold text-gray-600">Accuracy</th>
+                        <th class="px-4 py-3 text-left font-semibold text-gray-600">Precision</th>
+                        <th class="px-4 py-3 text-left font-semibold text-gray-600">Recall</th>
+                        <th class="px-4 py-3 text-left font-semibold text-gray-600">F1 Score</th>
+                        <th class="px-4 py-3 text-left font-semibold text-gray-600">Samples</th>
+                        <th class="px-4 py-3 text-left font-semibold text-gray-600">Classes</th>
+                        <th class="px-4 py-3 text-left font-semibold text-gray-600">Trained</th>
+                        <th class="px-4 py-3 text-left font-semibold text-gray-600">Status</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    {% for v in model_versions %}
+                    <tr class="{% if v.is_active %}bg-green-50{% endif %}">
+                        <td class="px-4 py-3 font-medium text-gray-800">{{ v.version }}</td>
+                        <td class="px-4 py-3">
+                            <span class="font-semibold {% if v.accuracy >= 0.7 %}text-green-600{% elif v.accuracy >= 0.5 %}text-yellow-600{% else %}text-red-600{% endif %}">
+                                {{ v.accuracy|floatformat:1 }}%
+                            </span>
+                        </td>
+                        <td class="px-4 py-3 text-gray-600">{{ v.precision|floatformat:2|default:"--" }}</td>
+                        <td class="px-4 py-3 text-gray-600">{{ v.recall|floatformat:2|default:"--" }}</td>
+                        <td class="px-4 py-3 text-gray-600">{{ v.f1_score|floatformat:2|default:"--" }}</td>
+                        <td class="px-4 py-3 text-gray-600">{{ v.training_samples }}</td>
+                        <td class="px-4 py-3 text-gray-600">{{ v.num_classes }}</td>
+                        <td class="px-4 py-3 text-gray-500 text-xs">{{ v.trained_at|date:"M d, Y H:i" }}</td>
+                        <td class="px-4 py-3">
+                            {% if v.is_active %}
+                            <span class="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">Active</span>
+                            {% else %}
+                            <span class="px-2 py-1 bg-gray-100 text-gray-500 rounded-full text-xs">Archived</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-8 text-gray-400">
+            <svg class="w-12 h-12 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/>
+            </svg>
+            <p>No models trained yet. Collect training data and train your first model.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Recent Predictions -->
+    {% if recent_predictions %}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">Recent Predictions</h3>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="bg-gray-50">
+                        <th class="px-4 py-3 text-left font-semibold text-gray-600">Date</th>
+                        <th class="px-4 py-3 text-left font-semibold text-gray-600">Symptoms</th>
+                        <th class="px-4 py-3 text-left font-semibold text-gray-600">Prediction</th>
+                        <th class="px-4 py-3 text-left font-semibold text-gray-600">Confidence</th>
+                        <th class="px-4 py-3 text-left font-semibold text-gray-600">Model</th>
+                        <th class="px-4 py-3 text-left font-semibold text-gray-600">Feedback</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    {% for pred in recent_predictions %}
+                    <tr>
+                        <td class="px-4 py-3 text-gray-500 text-xs">{{ pred.created_at|date:"M d, H:i" }}</td>
+                        <td class="px-4 py-3 text-gray-600" style="max-width: 200px;">
+                            <span class="truncate block">{{ pred.symptoms_input|truncatewords:8 }}</span>
+                        </td>
+                        <td class="px-4 py-3 font-medium text-gray-800">{{ pred.prediction_1 }}</td>
+                        <td class="px-4 py-3">
+                            <span class="font-semibold {% if pred.confidence_1 >= 0.7 %}text-green-600{% elif pred.confidence_1 >= 0.4 %}text-yellow-600{% else %}text-gray-600{% endif %}">
+                                {{ pred.confidence_1|floatformat:0 }}%
+                            </span>
+                        </td>
+                        <td class="px-4 py-3 text-gray-500">{{ pred.model_version.version|default:"--" }}</td>
+                        <td class="px-4 py-3">
+                            {% if pred.feedback_received %}
+                            <span class="px-2 py-1 bg-green-100 text-green-700 rounded text-xs">Confirmed</span>
+                            {% else %}
+                            <span class="px-2 py-1 bg-gray-100 text-gray-500 rounded text-xs">Pending</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const colors = ['#3B82F6','#EF4444','#10B981','#F59E0B','#6366F1','#EC4899','#14B8A6','#F97316','#8B5CF6','#06B6D4','#84CC16','#E11D48','#0EA5E9','#D946EF','#22C55E','#A855F7','#F43F5E','#0891B2','#65A30D','#DC2626'];
+
+    // =============================================
+    // 1. Accuracy Over Time (Line Chart)
+    // =============================================
+    const accuracyData = {{ accuracy_history|safe }};
+    if (accuracyData.length > 0) {
+        new Chart(document.getElementById('accuracyChart').getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: accuracyData.map(d => d.version),
+                datasets: [{
+                    label: 'Accuracy (%)',
+                    data: accuracyData.map(d => d.accuracy_pct),
+                    borderColor: '#7C3AED',
+                    backgroundColor: 'rgba(124, 58, 237, 0.1)',
+                    fill: true,
+                    tension: 0.3,
+                    pointBackgroundColor: '#7C3AED',
+                    pointRadius: 6,
+                    pointHoverRadius: 8,
+                }, {
+                    label: 'Training Samples',
+                    data: accuracyData.map(d => d.training_samples),
+                    borderColor: '#10B981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    fill: false,
+                    tension: 0.3,
+                    yAxisID: 'y1',
+                    pointBackgroundColor: '#10B981',
+                    pointRadius: 4,
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: { beginAtZero: false, min: 0, max: 100, title: { display: true, text: 'Accuracy (%)' } },
+                    y1: { position: 'right', beginAtZero: true, title: { display: true, text: 'Samples' }, grid: { drawOnChartArea: false } }
+                },
+                plugins: { legend: { position: 'bottom' } }
+            }
+        });
+    }
+
+    // =============================================
+    // 2. Disease Distribution (Doughnut Chart)
+    // =============================================
+    const diseaseData = {{ disease_distribution|safe }};
+    if (diseaseData.length > 0) {
+        new Chart(document.getElementById('diseaseChart').getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels: diseaseData.map(d => d.confirmed_disease),
+                datasets: [{ data: diseaseData.map(d => d.count), backgroundColor: colors.slice(0, diseaseData.length) }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { position: 'right', labels: { boxWidth: 12, font: { size: 11 } } } }
+            }
+        });
+    }
+
+    // =============================================
+    // 3. Feature Importance (Horizontal Bar Chart)
+    // =============================================
+    const featureData = {{ feature_importances_data|safe }};
+    if (featureData && featureData.length > 0) {
+        const sortedFeatures = featureData.sort((a, b) => a.importance - b.importance);
+        new Chart(document.getElementById('featureImportanceChart').getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: sortedFeatures.map(d => d.feature.replace(/_/g, ' ')),
+                datasets: [{
+                    label: 'Gini Importance',
+                    data: sortedFeatures.map(d => d.importance),
+                    backgroundColor: sortedFeatures.map((d, i) => {
+                        const ratio = i / sortedFeatures.length;
+                        return `rgba(124, 58, 237, ${0.3 + ratio * 0.7})`;
+                    }),
+                    borderColor: '#7C3AED',
+                    borderWidth: 1,
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        title: { display: true, text: 'Importance Score' }
+                    },
+                    y: {
+                        ticks: { font: { size: 10 } }
+                    }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: (ctx) => `Importance: ${(ctx.raw * 100).toFixed(2)}%`
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // =============================================
+    // 4. Per-Class Precision / Recall / F1 (Grouped Bar)
+    // =============================================
+    const perClassData = {{ per_class_metrics_data|safe }};
+    if (perClassData && perClassData.length > 0) {
+        new Chart(document.getElementById('perClassChart').getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: perClassData.map(d => d.class.length > 18 ? d.class.substring(0, 18) + '...' : d.class),
+                datasets: [
+                    {
+                        label: 'Precision',
+                        data: perClassData.map(d => d.precision),
+                        backgroundColor: 'rgba(59, 130, 246, 0.8)',
+                        borderColor: '#3B82F6',
+                        borderWidth: 1,
+                    },
+                    {
+                        label: 'Recall',
+                        data: perClassData.map(d => d.recall),
+                        backgroundColor: 'rgba(16, 185, 129, 0.8)',
+                        borderColor: '#10B981',
+                        borderWidth: 1,
+                    },
+                    {
+                        label: 'F1-Score',
+                        data: perClassData.map(d => d.f1),
+                        backgroundColor: 'rgba(245, 158, 11, 0.8)',
+                        borderColor: '#F59E0B',
+                        borderWidth: 1,
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 1.0,
+                        title: { display: true, text: 'Score' },
+                        ticks: { callback: (v) => (v * 100).toFixed(0) + '%' }
+                    },
+                    x: {
+                        ticks: { font: { size: 9 }, maxRotation: 45, minRotation: 45 }
+                    }
+                },
+                plugins: {
+                    legend: { position: 'bottom' },
+                    tooltip: {
+                        callbacks: {
+                            label: (ctx) => `${ctx.dataset.label}: ${(ctx.raw * 100).toFixed(1)}%`
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // =============================================
+    // 5. Confusion Matrix Heatmap (Canvas-based)
+    // =============================================
+    const cmData = {{ confusion_matrix_data|safe }};
+    const classLabels = {{ class_labels_data|safe }};
+
+    if (cmData && cmData.length > 0 && classLabels && classLabels.length > 0) {
+        const canvas = document.getElementById('confusionMatrixChart');
+        const n = classLabels.length;
+        const cellSize = Math.max(35, Math.min(55, 700 / n));
+        const labelWidth = 130;
+        const topLabelHeight = 100;
+        const padding = 20;
+
+        canvas.width = labelWidth + n * cellSize + padding + 60;
+        canvas.height = topLabelHeight + n * cellSize + padding;
+
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Find max value for color scaling
+        let maxVal = 0;
+        for (let i = 0; i < n; i++) {
+            for (let j = 0; j < n; j++) {
+                if (cmData[i][j] > maxVal) maxVal = cmData[i][j];
+            }
+        }
+        if (maxVal === 0) maxVal = 1;
+
+        // Draw cells
+        for (let i = 0; i < n; i++) {
+            for (let j = 0; j < n; j++) {
+                const x = labelWidth + j * cellSize;
+                const y = topLabelHeight + i * cellSize;
+                const val = cmData[i][j];
+                const intensity = val / maxVal;
+
+                // Color: diagonal = green shades, off-diagonal = red shades
+                if (i === j) {
+                    ctx.fillStyle = `rgba(16, 185, 129, ${0.15 + intensity * 0.85})`;
+                } else {
+                    ctx.fillStyle = val > 0 ? `rgba(239, 68, 68, ${0.15 + intensity * 0.85})` : 'rgba(243, 244, 246, 0.5)';
+                }
+
+                ctx.fillRect(x, y, cellSize - 1, cellSize - 1);
+
+                // Cell border
+                ctx.strokeStyle = '#e5e7eb';
+                ctx.lineWidth = 0.5;
+                ctx.strokeRect(x, y, cellSize - 1, cellSize - 1);
+
+                // Value text
+                if (val > 0) {
+                    ctx.fillStyle = intensity > 0.6 ? '#ffffff' : '#374151';
+                    ctx.font = `bold ${Math.max(10, cellSize / 3.5)}px sans-serif`;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(val, x + cellSize / 2 - 0.5, y + cellSize / 2);
+                }
+            }
+        }
+
+        // Y-axis labels (Actual)
+        ctx.fillStyle = '#374151';
+        ctx.font = `${Math.max(8, cellSize / 4.5)}px sans-serif`;
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'middle';
+        for (let i = 0; i < n; i++) {
+            const label = classLabels[i].length > 18 ? classLabels[i].substring(0, 18) + '..' : classLabels[i];
+            ctx.fillText(label, labelWidth - 6, topLabelHeight + i * cellSize + cellSize / 2);
+        }
+
+        // X-axis labels (Predicted) - rotated
+        ctx.save();
+        ctx.font = `${Math.max(8, cellSize / 4.5)}px sans-serif`;
+        ctx.textAlign = 'right';
+        for (let j = 0; j < n; j++) {
+            const x = labelWidth + j * cellSize + cellSize / 2;
+            const y = topLabelHeight - 6;
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(-Math.PI / 3);
+            const label = classLabels[j].length > 18 ? classLabels[j].substring(0, 18) + '..' : classLabels[j];
+            ctx.fillStyle = '#374151';
+            ctx.fillText(label, 0, 0);
+            ctx.restore();
+        }
+        ctx.restore();
+
+        // Axis titles
+        ctx.fillStyle = '#6B7280';
+        ctx.font = 'bold 12px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Predicted Label', labelWidth + (n * cellSize) / 2, topLabelHeight + n * cellSize + padding - 2);
+
+        ctx.save();
+        ctx.translate(14, topLabelHeight + (n * cellSize) / 2);
+        ctx.rotate(-Math.PI / 2);
+        ctx.fillText('Actual Label', 0, 0);
+        ctx.restore();
+
+        // Color legend
+        const legendX = labelWidth + n * cellSize + 15;
+        const legendH = Math.min(n * cellSize, 150);
+        const legendY = topLabelHeight + (n * cellSize - legendH) / 2;
+        const gradient = ctx.createLinearGradient(0, legendY + legendH, 0, legendY);
+        gradient.addColorStop(0, 'rgba(16, 185, 129, 0.15)');
+        gradient.addColorStop(1, 'rgba(16, 185, 129, 1)');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(legendX, legendY, 15, legendH);
+        ctx.strokeStyle = '#d1d5db';
+        ctx.strokeRect(legendX, legendY, 15, legendH);
+        ctx.fillStyle = '#6B7280';
+        ctx.font = '9px sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(maxVal, legendX + 20, legendY + 5);
+        ctx.fillText('0', legendX + 20, legendY + legendH);
+    }
+
+    // =============================================
+    // 6. Classification Report Table
+    // =============================================
+    if (perClassData && perClassData.length > 0) {
+        const tableDiv = document.getElementById('classificationReportTable');
+        let html = '<table class="w-full text-sm"><thead><tr class="bg-gray-50">';
+        html += '<th class="px-4 py-3 text-left font-semibold text-gray-600">Disease Class</th>';
+        html += '<th class="px-4 py-3 text-center font-semibold text-gray-600">Precision</th>';
+        html += '<th class="px-4 py-3 text-center font-semibold text-gray-600">Recall</th>';
+        html += '<th class="px-4 py-3 text-center font-semibold text-gray-600">F1-Score</th>';
+        html += '<th class="px-4 py-3 text-center font-semibold text-gray-600">Support</th>';
+        html += '</tr></thead><tbody class="divide-y divide-gray-100">';
+
+        perClassData.forEach(d => {
+            const pColor = d.precision >= 0.8 ? 'text-green-600' : d.precision >= 0.5 ? 'text-yellow-600' : 'text-red-600';
+            const rColor = d.recall >= 0.8 ? 'text-green-600' : d.recall >= 0.5 ? 'text-yellow-600' : 'text-red-600';
+            const fColor = d.f1 >= 0.8 ? 'text-green-600' : d.f1 >= 0.5 ? 'text-yellow-600' : 'text-red-600';
+            html += `<tr>`;
+            html += `<td class="px-4 py-2 font-medium text-gray-800">${d.class}</td>`;
+            html += `<td class="px-4 py-2 text-center"><span class="font-semibold ${pColor}">${(d.precision * 100).toFixed(1)}%</span></td>`;
+            html += `<td class="px-4 py-2 text-center"><span class="font-semibold ${rColor}">${(d.recall * 100).toFixed(1)}%</span></td>`;
+            html += `<td class="px-4 py-2 text-center"><span class="font-semibold ${fColor}">${(d.f1 * 100).toFixed(1)}%</span></td>`;
+            html += `<td class="px-4 py-2 text-center text-gray-500">${d.support}</td>`;
+            html += `</tr>`;
+        });
+
+        html += '</tbody></table>';
+        tableDiv.innerHTML = html;
+    }
+});
+</script>
+{% endblock %}

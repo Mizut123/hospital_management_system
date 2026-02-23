@@ -1,0 +1,202 @@
+[
+    {
+        "model": "accounts.department",
+        "pk": 1,
+        "fields": {
+            "name": "Emergency Medicine",
+            "description": "24/7 emergency care for acute illnesses, injuries, and trauma. Handles life-threatening conditions requiring immediate medical attention.",
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "accounts.department",
+        "pk": 2,
+        "fields": {
+            "name": "Intensive Care Unit (ICU)",
+            "description": "Critical care for severely ill patients requiring continuous monitoring and life support systems.",
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "accounts.department",
+        "pk": 3,
+        "fields": {
+            "name": "General Surgery",
+            "description": "Surgical procedures including appendectomy, hernia repair, gallbladder removal, and other abdominal surgeries.",
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "accounts.department",
+        "pk": 4,
+        "fields": {
+            "name": "Cardiology",
+            "description": "Diagnosis and treatment of heart diseases, cardiac arrhythmias, heart failure, and cardiovascular conditions.",
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "accounts.department",
+        "pk": 5,
+        "fields": {
+            "name": "Obstetrics & Gynecology",
+            "description": "Women's reproductive health, pregnancy care, childbirth, and gynecological conditions.",
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "accounts.department",
+        "pk": 6,
+        "fields": {
+            "name": "Pediatrics",
+            "description": "Medical care for infants, children, and adolescents including vaccinations and developmental assessments.",
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "accounts.department",
+        "pk": 7,
+        "fields": {
+            "name": "Orthopedics",
+            "description": "Treatment of musculoskeletal system including bones, joints, ligaments, tendons, and muscles.",
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "accounts.department",
+        "pk": 8,
+        "fields": {
+            "name": "Neurology",
+            "description": "Diagnosis and treatment of brain, spinal cord, and nervous system disorders including stroke and epilepsy.",
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "accounts.department",
+        "pk": 9,
+        "fields": {
+            "name": "Radiology",
+            "description": "Medical imaging services including X-rays, CT scans, MRI, ultrasound, and interventional radiology.",
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "accounts.department",
+        "pk": 10,
+        "fields": {
+            "name": "Internal Medicine",
+            "description": "Comprehensive care for adult diseases, chronic conditions, and general health management.",
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "accounts.department",
+        "pk": 11,
+        "fields": {
+            "name": "Dermatology",
+            "description": "Treatment of skin, hair, and nail conditions including acne, eczema, psoriasis, and skin cancer.",
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "accounts.department",
+        "pk": 12,
+        "fields": {
+            "name": "Ophthalmology",
+            "description": "Eye care including vision correction, cataract surgery, glaucoma treatment, and retinal disorders.",
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "accounts.department",
+        "pk": 13,
+        "fields": {
+            "name": "ENT (Otolaryngology)",
+            "description": "Treatment of ear, nose, throat, head, and neck disorders including hearing loss and sinus problems.",
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "accounts.department",
+        "pk": 14,
+        "fields": {
+            "name": "Psychiatry",
+            "description": "Mental health services including treatment of depression, anxiety, bipolar disorder, and schizophrenia.",
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "accounts.department",
+        "pk": 15,
+        "fields": {
+            "name": "Oncology",
+            "description": "Cancer diagnosis, treatment, and management including chemotherapy and radiation therapy coordination.",
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "accounts.department",
+        "pk": 16,
+        "fields": {
+            "name": "Nephrology",
+            "description": "Kidney diseases including chronic kidney disease, dialysis management, and kidney transplant care.",
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "accounts.department",
+        "pk": 17,
+        "fields": {
+            "name": "Urology",
+            "description": "Urinary tract and male reproductive system disorders including kidney stones and prostate conditions.",
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "accounts.department",
+        "pk": 18,
+        "fields": {
+            "name": "Gastroenterology",
+            "description": "Digestive system disorders including GERD, IBS, liver diseases, and endoscopic procedures.",
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "accounts.department",
+        "pk": 19,
+        "fields": {
+            "name": "Pulmonology",
+            "description": "Lung and respiratory diseases including asthma, COPD, pneumonia, and sleep apnea.",
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "accounts.department",
+        "pk": 20,
+        "fields": {
+            "name": "Endocrinology",
+            "description": "Hormonal and metabolic disorders including diabetes, thyroid diseases, and adrenal conditions.",
+            "is_active": true,
+            "created_at": "2024-01-01T00:00:00Z"
+        }
+    }
+]

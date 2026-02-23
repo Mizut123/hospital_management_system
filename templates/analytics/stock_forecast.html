@@ -1,0 +1,176 @@
+{% extends 'base.html' %}
+
+{% block title %}ML Stock Forecast - HMS{% endblock %}
+
+{% block content %}
+<div class="space-y-6 animate-fade-in">
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+        <div>
+            <a href="{% url 'analytics:reports' %}" class="inline-flex items-center text-gray-600 hover:text-gray-800 mb-2">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                </svg>
+                Back to Reports
+            </a>
+            <h1 class="text-2xl font-bold text-gray-800">ML Stock Demand Forecast</h1>
+            <p class="text-gray-500 mt-1">Machine learning powered predictions for inventory management</p>
+        </div>
+        <div class="flex items-center space-x-2">
+            <span class="px-3 py-1 bg-purple-100 text-purple-700 text-sm font-medium rounded-full flex items-center">
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                </svg>
+                AI Powered
+            </span>
+        </div>
+    </div>
+
+    <!-- Info Card -->
+    <div class="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl border border-purple-100 p-4">
+        <div class="flex items-start space-x-3">
+            <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+            </div>
+            <div>
+                <h3 class="font-medium text-purple-800">How ML Forecasting Works</h3>
+                <p class="text-sm text-purple-700 mt-1">
+                    Our system analyzes 90 days of dispensing history using Linear Regression to predict future demand.
+                    Confidence levels are based on the model's R-squared score. Recommendations include a 20% buffer for safety stock.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    {% if forecasts %}
+    <!-- Forecast Table -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100">
+        <div class="px-6 py-4 border-b border-gray-100">
+            <h2 class="text-lg font-semibold text-gray-800">30-Day Demand Forecast</h2>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Medicine</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Current Stock</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Predicted Demand</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Daily Average</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Days Until Stockout</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Confidence</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Risk Level</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Recommended Order</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    {% for forecast in forecasts %}
+                    <tr class="hover:bg-gray-50 {% if forecast.risk_level == 'Critical' %}bg-red-50{% elif forecast.risk_level == 'High' %}bg-orange-50{% endif %}">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <p class="font-medium text-gray-800">{{ forecast.medicine_name }}</p>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="text-lg font-semibold {% if forecast.current_stock == 0 %}text-red-600{% elif forecast.current_stock < 20 %}text-yellow-600{% else %}text-gray-800{% endif %}">
+                                {{ forecast.current_stock }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-gray-600">
+                            {{ forecast.predicted_demand|floatformat:0 }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-gray-600">
+                            {{ forecast.daily_average }}/day
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            {% if forecast.days_until_stockout >= 999 %}
+                            <span class="text-green-600 font-medium">999+ days</span>
+                            {% elif forecast.days_until_stockout <= 7 %}
+                            <span class="text-red-600 font-bold">{{ forecast.days_until_stockout }} days</span>
+                            {% elif forecast.days_until_stockout <= 14 %}
+                            <span class="text-orange-600 font-medium">{{ forecast.days_until_stockout }} days</span>
+                            {% else %}
+                            <span class="text-gray-600">{{ forecast.days_until_stockout }} days</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            {% if forecast.confidence == 'High' %}
+                            <span class="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">High</span>
+                            {% elif forecast.confidence == 'Medium' %}
+                            <span class="px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full">Medium</span>
+                            {% else %}
+                            <span class="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded-full">Low</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            {% if forecast.risk_level == 'Critical' %}
+                            <span class="px-2 py-1 text-xs font-medium bg-red-100 text-red-800 rounded-full flex items-center w-fit">
+                                <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92z"/>
+                                </svg>
+                                Critical
+                            </span>
+                            {% elif forecast.risk_level == 'High' %}
+                            <span class="px-2 py-1 text-xs font-medium bg-orange-100 text-orange-800 rounded-full">High</span>
+                            {% elif forecast.risk_level == 'Medium' %}
+                            <span class="px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full">Medium</span>
+                            {% else %}
+                            <span class="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">Low</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            {% if forecast.recommended_order > 0 %}
+                            <span class="px-3 py-1 bg-blue-100 text-blue-800 font-medium rounded-lg">
+                                Order {{ forecast.recommended_order|floatformat:0 }}
+                            </span>
+                            {% else %}
+                            <span class="text-gray-400">-</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Legend -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">Understanding the Forecast</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="p-4 bg-red-50 rounded-lg border border-red-100">
+                <h4 class="font-medium text-red-800 mb-1">Critical Risk</h4>
+                <p class="text-sm text-red-700">Stockout expected within 7 days. Order immediately.</p>
+            </div>
+            <div class="p-4 bg-orange-50 rounded-lg border border-orange-100">
+                <h4 class="font-medium text-orange-800 mb-1">High Risk</h4>
+                <p class="text-sm text-orange-700">Stockout expected within 14 days. Place order soon.</p>
+            </div>
+            <div class="p-4 bg-yellow-50 rounded-lg border border-yellow-100">
+                <h4 class="font-medium text-yellow-800 mb-1">Medium Risk</h4>
+                <p class="text-sm text-yellow-700">Stockout expected within 30 days. Plan reorder.</p>
+            </div>
+            <div class="p-4 bg-green-50 rounded-lg border border-green-100">
+                <h4 class="font-medium text-green-800 mb-1">Low Risk</h4>
+                <p class="text-sm text-green-700">Sufficient stock for 30+ days. Monitor normally.</p>
+            </div>
+        </div>
+    </div>
+
+    {% else %}
+    <!-- No Data -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
+        <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+        </svg>
+        <h3 class="text-lg font-medium text-gray-800 mb-2">No Forecast Data Available</h3>
+        <p class="text-gray-500 mb-4">Stock transactions are needed to generate demand forecasts.</p>
+        <a href="{% url 'pharmacy:stock' %}" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+            </svg>
+            Go to Stock Management
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}My Medical Records - HMS{% endblock %}
+
+{% block content %}
+<div class="space-y-6 animate-fade-in">
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-800">My Medical Records</h1>
+            <p class="text-gray-500 mt-1">View your complete medical history</p>
+        </div>
+        <a href="{% url 'medical_records:my_prescriptions' %}" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium flex items-center">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+            </svg>
+            View Prescriptions
+        </a>
+    </div>
+
+    <!-- Records List -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100">
+        {% if records %}
+        <div class="divide-y divide-gray-100">
+            {% for record in records %}
+            <div class="p-6 hover:bg-gray-50 transition-colors">
+                <div class="flex items-start justify-between">
+                    <div class="flex items-start space-x-4">
+                        <!-- Date Badge -->
+                        <div class="flex-shrink-0 w-16 h-16 bg-blue-100 rounded-xl flex flex-col items-center justify-center">
+                            <span class="text-xs font-medium text-blue-600">{{ record.visit_date|date:"M" }}</span>
+                            <span class="text-2xl font-bold text-blue-700">{{ record.visit_date|date:"d" }}</span>
+                        </div>
+
+                        <div>
+                            <h3 class="font-semibold text-gray-800">Visit with Dr. {{ record.doctor.get_full_name }}</h3>
+                            <p class="text-sm text-gray-500">{{ record.visit_date|date:"F d, Y" }}</p>
+
+                            {% if record.chief_complaint %}
+                            <p class="text-gray-600 mt-2">{{ record.chief_complaint|truncatewords:20 }}</p>
+                            {% endif %}
+
+                            {% if record.diagnoses.exists %}
+                            <div class="mt-2 flex flex-wrap gap-2">
+                                {% for diagnosis in record.diagnoses.all %}
+                                <span class="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">
+                                    {{ diagnosis.description|truncatewords:5 }}
+                                </span>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <a href="{% url 'medical_records:detail' record.pk %}"
+                       class="px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors text-sm font-medium flex items-center">
+                        View Details
+                        <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="p-12 text-center">
+            <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+            <h3 class="text-lg font-medium text-gray-800 mb-2">No medical records yet</h3>
+            <p class="text-gray-500">Your medical records will appear here after your visits.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,170 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Medical Record - HMS{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-6 animate-fade-in">
+    <!-- Back Button -->
+    <a href="javascript:history.back()" class="inline-flex items-center text-gray-600 hover:text-gray-800">
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+        </svg>
+        Back
+    </a>
+
+    <!-- Header -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <div class="flex items-start justify-between">
+            <div class="flex items-center space-x-4">
+                <div class="w-16 h-16 bg-blue-100 rounded-xl flex flex-col items-center justify-center">
+                    <span class="text-xs font-medium text-blue-600">{{ record.visit_date|date:"M" }}</span>
+                    <span class="text-2xl font-bold text-blue-700">{{ record.visit_date|date:"d" }}</span>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-gray-800">Medical Record</h1>
+                    <p class="text-gray-500">{{ record.visit_date|date:"F d, Y" }}</p>
+                    <p class="text-sm text-gray-600 mt-1">
+                        Patient: <span class="font-medium">{{ record.patient.get_full_name }}</span> &bull;
+                        Doctor: <span class="font-medium">Dr. {{ record.doctor.get_full_name }}</span>
+                    </p>
+                </div>
+            </div>
+            {% if user.is_doctor %}
+            <a href="{% url 'medical_records:create_prescription' record.pk %}"
+               class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium">
+                Add Prescription
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Chief Complaint & History -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <h2 class="text-lg font-semibold text-gray-800 mb-4">Chief Complaint</h2>
+            <p class="text-gray-600">{{ record.chief_complaint|default:"Not recorded" }}</p>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <h2 class="text-lg font-semibold text-gray-800 mb-4">History of Present Illness</h2>
+            <p class="text-gray-600">{{ record.history_of_present_illness|default:"Not recorded" }}</p>
+        </div>
+    </div>
+
+    <!-- Vital Signs -->
+    {% if record.vital_signs %}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h2 class="text-lg font-semibold text-gray-800 mb-4">Vital Signs</h2>
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <div class="text-center p-4 bg-gray-50 rounded-lg">
+                <p class="text-sm text-gray-500">Blood Pressure</p>
+                <p class="text-lg font-semibold text-gray-800">{{ record.vital_signs.blood_pressure|default:"-" }}</p>
+            </div>
+            <div class="text-center p-4 bg-gray-50 rounded-lg">
+                <p class="text-sm text-gray-500">Pulse</p>
+                <p class="text-lg font-semibold text-gray-800">{{ record.vital_signs.pulse|default:"-" }}</p>
+            </div>
+            <div class="text-center p-4 bg-gray-50 rounded-lg">
+                <p class="text-sm text-gray-500">Temperature</p>
+                <p class="text-lg font-semibold text-gray-800">{{ record.vital_signs.temperature|default:"-" }}</p>
+            </div>
+            <div class="text-center p-4 bg-gray-50 rounded-lg">
+                <p class="text-sm text-gray-500">Weight</p>
+                <p class="text-lg font-semibold text-gray-800">{{ record.vital_signs.weight|default:"-" }}</p>
+            </div>
+            <div class="text-center p-4 bg-gray-50 rounded-lg">
+                <p class="text-sm text-gray-500">Height</p>
+                <p class="text-lg font-semibold text-gray-800">{{ record.vital_signs.height|default:"-" }}</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Physical Examination -->
+    {% if record.physical_examination %}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h2 class="text-lg font-semibold text-gray-800 mb-4">Physical Examination</h2>
+        <p class="text-gray-600 whitespace-pre-line">{{ record.physical_examination }}</p>
+    </div>
+    {% endif %}
+
+    <!-- Diagnoses -->
+    {% if diagnoses %}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h2 class="text-lg font-semibold text-gray-800 mb-4">Diagnoses</h2>
+        <div class="space-y-3">
+            {% for diagnosis in diagnoses %}
+            <div class="flex items-center p-4 bg-yellow-50 rounded-lg">
+                <svg class="w-6 h-6 text-yellow-600 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <div>
+                    <p class="font-medium text-gray-800">{{ diagnosis.description }}</p>
+                    {% if diagnosis.icd_code %}
+                    <p class="text-sm text-gray-500">ICD Code: {{ diagnosis.icd_code }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Assessment & Plan -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {% if record.assessment %}
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <h2 class="text-lg font-semibold text-gray-800 mb-4">Assessment</h2>
+            <p class="text-gray-600 whitespace-pre-line">{{ record.assessment }}</p>
+        </div>
+        {% endif %}
+
+        {% if record.plan %}
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <h2 class="text-lg font-semibold text-gray-800 mb-4">Treatment Plan</h2>
+            <p class="text-gray-600 whitespace-pre-line">{{ record.plan }}</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Prescriptions -->
+    {% if prescriptions %}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h2 class="text-lg font-semibold text-gray-800 mb-4">Prescriptions</h2>
+        <div class="space-y-4">
+            {% for prescription in prescriptions %}
+            <div class="border border-gray-200 rounded-lg p-4">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="font-medium text-gray-800">Prescription #{{ prescription.pk }}</span>
+                    <span class="px-2 py-1 text-xs font-medium rounded-full
+                        {% if prescription.status == 'active' %}bg-green-100 text-green-800
+                        {% elif prescription.status == 'pending' %}bg-yellow-100 text-yellow-800
+                        {% elif prescription.status == 'dispensed' %}bg-blue-100 text-blue-800
+                        {% else %}bg-gray-100 text-gray-800{% endif %}">
+                        {{ prescription.get_status_display|default:prescription.status|title }}
+                    </span>
+                </div>
+                <div class="space-y-2">
+                    {% for item in prescription.items.all %}
+                    <div class="flex items-center justify-between text-sm">
+                        <span class="text-gray-700">{{ item.medicine.name }}</span>
+                        <span class="text-gray-500">{{ item.dosage }} - {{ item.frequency }} - {{ item.duration }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Notes -->
+    {% if record.notes %}
+    <div class="bg-blue-50 rounded-xl p-6">
+        <h2 class="text-lg font-semibold text-blue-800 mb-2">Additional Notes</h2>
+        <p class="text-blue-700">{{ record.notes }}</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

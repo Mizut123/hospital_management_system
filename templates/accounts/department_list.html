@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block title %}Departments - HMS{% endblock %}
+
+{% block page_title %}Departments{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+        <div>
+            <h2 class="text-2xl font-bold text-gray-800">Hospital Departments</h2>
+            <p class="text-gray-500">Manage hospital departments and specializations</p>
+        </div>
+    </div>
+
+    <!-- Departments Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for dept in departments %}
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
+            <div class="flex items-start justify-between mb-4">
+                <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                    <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                    </svg>
+                </div>
+                {% if dept.is_active %}
+                <span class="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">Active</span>
+                {% else %}
+                <span class="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded-full">Inactive</span>
+                {% endif %}
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-2">{{ dept.name }}</h3>
+            <p class="text-sm text-gray-500 mb-4">{{ dept.description|default:"No description" }}</p>
+            <div class="flex items-center justify-between text-sm">
+                <span class="text-gray-500">
+                    {% if dept.head_doctor %}
+                    Head: Dr. {{ dept.head_doctor.get_full_name }}
+                    {% else %}
+                    No head assigned
+                    {% endif %}
+                </span>
+                <span class="text-blue-600 font-medium">{{ dept.doctors.count }} doctors</span>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-3 bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
+            <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+            </svg>
+            <p class="text-gray-500">No departments configured yet</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block title %}Patients - HMS{% endblock %}
+
+{% block page_title %}Patients{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Search -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+        <form method="GET" class="flex items-center space-x-4">
+            <div class="flex-1">
+                <input type="text" name="search" value="{{ search }}" placeholder="Search patients by name, ID, or phone..."
+                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+            </div>
+            <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Search</button>
+        </form>
+    </div>
+
+    <!-- Patients Table -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <table class="w-full">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Patient</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Contact</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Blood Group</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Risk Level</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+                {% for patient in patients %}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                                <span class="text-sm font-medium text-blue-600">{{ patient.user.first_name.0 }}{{ patient.user.last_name.0 }}</span>
+                            </div>
+                            <div class="ml-4">
+                                <div class="text-sm font-medium text-gray-900">{{ patient.user.get_full_name }}</div>
+                                <div class="text-sm text-gray-500">{{ patient.user.email }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 text-sm text-gray-900">{{ patient.patient_number }}</td>
+                    <td class="px-6 py-4 text-sm text-gray-500">{{ patient.user.phone|default:"-" }}</td>
+                    <td class="px-6 py-4 text-sm text-gray-500">{{ patient.blood_group|default:"-" }}</td>
+                    <td class="px-6 py-4">
+                        <span class="px-2 py-1 text-xs font-medium rounded-full
+                            {% if patient.risk_level == 'critical' %}bg-red-100 text-red-800
+                            {% elif patient.risk_level == 'high' %}bg-orange-100 text-orange-800
+                            {% elif patient.risk_level == 'medium' %}bg-yellow-100 text-yellow-800
+                            {% else %}bg-green-100 text-green-800{% endif %}">
+                            {{ patient.risk_level|title }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        <a href="{% url 'patients:detail' patient.pk %}" class="text-blue-600 hover:text-blue-900">View</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="px-6 py-12 text-center text-gray-500">No patients found</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

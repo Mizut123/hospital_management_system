@@ -1,0 +1,843 @@
+{% extends 'base.html' %}
+
+{% block title %}Register Patient - HMS{% endblock %}
+
+{% block page_title %}Register New Patient{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-6" x-data="patientRegistration()">
+    <!-- AI Symptom Assessment Chatbot -->
+    <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100 p-6">
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center">
+                <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                    <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h2 class="text-lg font-semibold text-gray-800">AI Symptom Assessment</h2>
+                    <p class="text-sm text-gray-500">Help us understand the patient's current condition</p>
+                </div>
+            </div>
+            <span class="px-2.5 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-full">Optional</span>
+        </div>
+
+        <!-- Symptom Input -->
+        <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-2">What symptoms is the patient experiencing?</label>
+            <div class="flex flex-wrap gap-2 mb-3">
+                <template x-for="(symptom, index) in selectedSymptoms" :key="index">
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800">
+                        <span x-text="symptom"></span>
+                        <button type="button" @click="removeSymptom(index)" class="ml-2 text-blue-600 hover:text-blue-800">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </span>
+                </template>
+            </div>
+            <div class="flex space-x-2">
+                <div class="relative flex-1">
+                    <input type="text" x-model="symptomInput" @keydown.enter.prevent="addSymptom()"
+                        placeholder="Type a symptom (e.g., fever, cough, headache)"
+                        class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <!-- Autocomplete dropdown -->
+                    <div x-show="filteredKeywords.length > 0 && symptomInput.length > 1"
+                        class="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                        <template x-for="keyword in filteredKeywords" :key="keyword">
+                            <button type="button" @click="selectKeyword(keyword)"
+                                class="w-full px-4 py-2 text-left text-sm hover:bg-blue-50 text-gray-700">
+                                <span x-text="keyword"></span>
+                            </button>
+                        </template>
+                    </div>
+                </div>
+                <button type="button" @click="addSymptom()"
+                    class="px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                    Add
+                </button>
+                <button type="button" @click="analyzeSymptoms()" :disabled="selectedSymptoms.length === 0 || isAnalyzing"
+                    class="px-4 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center">
+                    <svg x-show="isAnalyzing" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span x-text="isAnalyzing ? 'Analyzing...' : 'Analyze'"></span>
+                </button>
+            </div>
+            <p class="mt-2 text-xs text-gray-500">Common symptoms: Fever, Cough, Headache, Fatigue, Chest Pain, Abdominal Pain, Nausea, Dizziness</p>
+        </div>
+
+        <!-- Triage Result -->
+        <div x-show="triageResult" class="mt-4">
+            <div class="p-4 rounded-lg" :class="{
+                'bg-green-50 border border-green-200': triageResult?.urgency === 'routine',
+                'bg-yellow-50 border border-yellow-200': triageResult?.urgency === 'urgent',
+                'bg-red-50 border border-red-200': triageResult?.urgency === 'emergency'
+            }">
+                <div class="flex items-start">
+                    <div class="flex-shrink-0">
+                        <template x-if="triageResult?.urgency === 'routine'">
+                            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </template>
+                        <template x-if="triageResult?.urgency === 'urgent'">
+                            <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                            </svg>
+                        </template>
+                        <template x-if="triageResult?.urgency === 'emergency'">
+                            <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </template>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-medium" :class="{
+                            'text-green-800': triageResult?.urgency === 'routine',
+                            'text-yellow-800': triageResult?.urgency === 'urgent',
+                            'text-red-800': triageResult?.urgency === 'emergency'
+                        }">
+                            <span x-text="triageResult?.urgency === 'routine' ? 'Routine' : (triageResult?.urgency === 'urgent' ? 'Urgent' : 'Emergency')"></span> Assessment
+                        </h3>
+                        <p class="mt-1 text-sm" :class="{
+                            'text-green-700': triageResult?.urgency === 'routine',
+                            'text-yellow-700': triageResult?.urgency === 'urgent',
+                            'text-red-700': triageResult?.urgency === 'emergency'
+                        }" x-text="triageResult?.urgency_message"></p>
+
+                        <!-- Possible Conditions -->
+                        <div x-show="triageResult?.possible_conditions?.length > 0" class="mt-3">
+                            <p class="text-xs font-medium text-gray-600 mb-1">Possible conditions to consider:</p>
+                            <div class="flex flex-wrap gap-1">
+                                <template x-for="condition in triageResult?.possible_conditions" :key="condition.diagnosis">
+                                    <span class="px-2 py-0.5 bg-white text-gray-700 text-xs rounded border border-gray-200">
+                                        <span x-text="condition.diagnosis"></span>
+                                        (<span x-text="condition.confidence"></span>%)
+                                    </span>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <p class="mt-2 text-xs text-gray-500 italic" x-text="triageResult?.disclaimer"></p>
+        </div>
+    </div>
+
+    <!-- ID Card Scanner -->
+    <div class="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-100 p-6"
+         x-data="idScanner()">
+
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center">
+                <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-3">
+                    <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8
+                                 a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0"/>
+                    </svg>
+                </div>
+                <div>
+                    <h2 class="text-lg font-semibold text-gray-800">Scan ID Card</h2>
+                    <p class="text-sm text-gray-500">Auto-fill fields from a national ID card photo</p>
+                </div>
+            </div>
+            <span class="px-2.5 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full">Free / Offline</span>
+        </div>
+
+        <!-- Hidden file input — capture="environment" uses the rear camera on mobile -->
+        <input type="file" id="id-card-input" accept="image/*" capture="environment"
+               class="hidden" @change="onImageSelected($event)">
+
+        <!-- Drop zone shown when no image is selected -->
+        <div x-show="!preview"
+             class="flex flex-col items-center justify-center border-2 border-dashed border-green-300
+                    rounded-xl py-8 cursor-pointer hover:border-green-400 transition-colors"
+             @click="document.getElementById('id-card-input').click()">
+            <svg class="w-12 h-12 text-green-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                      d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07
+                         4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9
+                         a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                      d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+            <p class="text-sm font-medium text-gray-700">Tap to open camera / choose file</p>
+            <p class="text-xs text-gray-500 mt-1">Point the rear camera at the ID card</p>
+        </div>
+
+        <!-- Preview + controls shown once an image is chosen -->
+        <div x-show="preview" class="space-y-3">
+            <div class="relative">
+                <img :src="preview" class="w-full max-h-48 object-contain rounded-lg border border-gray-200">
+                <button type="button" @click="clearImage()"
+                        class="absolute top-2 right-2 bg-red-100 text-red-600 rounded-full p-1
+                               hover:bg-red-200 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Status message -->
+            <div x-show="statusMsg"
+                 class="flex items-center space-x-2 text-sm px-3 py-2 rounded-lg"
+                 :class="statusType === 'success' ? 'bg-green-50 text-green-700' :
+                         statusType === 'error'   ? 'bg-red-50 text-red-600'    :
+                                                    'bg-blue-50 text-blue-600'">
+                <svg x-show="isProcessing" class="animate-spin w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                    <path class="opacity-75" fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                </svg>
+                <span x-text="statusMsg"></span>
+            </div>
+
+            <!-- Extract button (shown when no review data yet) -->
+            <button type="button" @click="extractFromImage()"
+                    :disabled="isProcessing"
+                    x-show="!isProcessing && !hasExtracted"
+                    class="w-full py-2.5 bg-green-600 text-white rounded-lg font-medium
+                           hover:bg-green-700 transition-colors disabled:opacity-50">
+                Extract Information from ID
+            </button>
+
+            <!-- Review panel: receptionist can fix OCR errors before applying -->
+            <div x-show="hasExtracted" class="border border-green-200 rounded-lg p-3 bg-white">
+                <p class="text-xs font-semibold text-green-700 mb-2">
+                    Review extracted data — correct any errors, then click Apply:
+                </p>
+                <div class="grid grid-cols-2 gap-2 mb-3">
+                    <div>
+                        <label class="text-xs text-gray-500">Surname</label>
+                        <input type="text" x-model="extractedData.last_name"
+                               class="w-full text-sm border border-gray-300 rounded px-2 py-1 mt-0.5">
+                    </div>
+                    <div>
+                        <label class="text-xs text-gray-500">First Name</label>
+                        <input type="text" x-model="extractedData.first_name"
+                               class="w-full text-sm border border-gray-300 rounded px-2 py-1 mt-0.5">
+                    </div>
+                    <div>
+                        <label class="text-xs text-gray-500">Date of Birth</label>
+                        <input type="date" x-model="extractedData.date_of_birth"
+                               class="w-full text-sm border border-gray-300 rounded px-2 py-1 mt-0.5">
+                    </div>
+                    <div>
+                        <label class="text-xs text-gray-500">Gender</label>
+                        <select x-model="extractedData.gender"
+                                class="w-full text-sm border border-gray-300 rounded px-2 py-1 mt-0.5">
+                            <option value="">—</option>
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                        </select>
+                    </div>
+                    <div class="col-span-2">
+                        <label class="text-xs text-gray-500">ID Number</label>
+                        <input type="text" x-model="extractedData.national_id"
+                               class="w-full text-sm border border-gray-300 rounded px-2 py-1 mt-0.5">
+                    </div>
+                </div>
+                <div class="flex space-x-2">
+                    <button type="button" @click="clearImage()"
+                            class="flex-1 py-2 text-sm border border-gray-300 text-gray-600
+                                   rounded-lg hover:bg-gray-50 transition-colors">
+                        Retake
+                    </button>
+                    <button type="button" @click="applyToForm()"
+                            class="flex-1 py-2 text-sm bg-green-600 text-white rounded-lg
+                                   font-medium hover:bg-green-700 transition-colors">
+                        Apply to Form ✓
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <p class="mt-3 text-xs text-gray-500 text-center">
+            Fields highlighted in green were auto-filled. Review and correct if needed.
+        </p>
+
+        <!-- Configure Card Layout link -->
+        <div class="mt-2 text-center">
+            <button type="button" @click="openCalibration()"
+                    class="text-xs text-green-600 underline hover:text-green-800">
+                Configure card layout (first-time setup)
+            </button>
+        </div>
+    </div>
+
+    <!-- Calibration Modal -->
+    <div x-data="cardCalibrator()" x-show="open" x-cloak
+         class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4"
+         @open-calibration.window="open = true">
+
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-lg max-h-screen overflow-y-auto p-6">
+
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-gray-800">Configure Card Layout</h3>
+                <button type="button" @click="open = false; reset()"
+                        class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Step 1: upload template -->
+            <div x-show="step === 1">
+                <p class="text-sm text-gray-600 mb-4">
+                    Scan or upload a photo of your ID card (a blank template or a real one).
+                    The system will detect all text blocks. You then tell it which block is which field.
+                </p>
+                <input type="file" id="learn-input" accept="image/*" capture="environment"
+                       class="hidden" @change="onLearnImage($event)">
+                <div class="border-2 border-dashed border-green-300 rounded-xl py-8 text-center
+                            cursor-pointer hover:border-green-400"
+                     @click="document.getElementById('learn-input').click()">
+                    <p class="text-sm font-medium text-gray-700">Tap to take a photo or choose file</p>
+                </div>
+                <div x-show="learning" class="mt-3 text-sm text-blue-600 flex items-center space-x-2">
+                    <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                    </svg>
+                    <span>Reading card text&hellip;</span>
+                </div>
+            </div>
+
+            <!-- Step 2: assign blocks to fields -->
+            <div x-show="step === 2">
+                <p class="text-sm text-gray-600 mb-3">
+                    For each detected text block, select which field it represents on your card.
+                    Choose <strong>Skip</strong> for blocks that don't map to any field
+                    (e.g. country name, signature line, labels).
+                </p>
+
+                <div class="space-y-2 mb-4">
+                    <template x-for="(block, idx) in blocks" :key="idx">
+                        <div class="flex items-center space-x-3 p-2 bg-gray-50 rounded-lg border border-gray-200">
+                            <span class="text-xs text-gray-400 w-5 text-right flex-shrink-0"
+                                  x-text="idx + 1"></span>
+                            <span class="flex-1 text-sm font-mono text-gray-800 truncate"
+                                  x-text="block.text"></span>
+                            <span class="text-xs text-gray-400" x-text="block.y_pct + '%'"></span>
+                            <select :id="'block-field-' + idx"
+                                    class="text-sm border border-gray-300 rounded px-2 py-1 flex-shrink-0"
+                                    x-model="mapping[idx]">
+                                <option value="">Skip</option>
+                                <option value="last_name">Surname</option>
+                                <option value="first_name">First Name</option>
+                                <option value="gender_dob">Gender + Date of Birth (same line)</option>
+                                <option value="date_of_birth">Date of Birth only</option>
+                                <option value="gender">Gender only</option>
+                                <option value="national_id">ID Number</option>
+                            </select>
+                        </div>
+                    </template>
+                </div>
+
+                <div x-show="saveMsg" class="mb-3 text-sm px-3 py-2 rounded-lg"
+                     :class="saveOk ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-600'"
+                     x-text="saveMsg"></div>
+
+                <div class="flex space-x-3">
+                    <button type="button" @click="step = 1; blocks = []; mapping = []"
+                            class="flex-1 py-2 border border-gray-300 text-gray-700 rounded-lg
+                                   text-sm hover:bg-gray-50">
+                        Retake Photo
+                    </button>
+                    <button type="button" @click="saveProfile()"
+                            :disabled="saving"
+                            class="flex-1 py-2 bg-green-600 text-white rounded-lg text-sm
+                                   font-medium hover:bg-green-700 disabled:opacity-50">
+                        <span x-text="saving ? 'Saving…' : 'Save Card Layout'"></span>
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Registration Form -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <form method="post" class="space-y-6" @submit="prepareSubmit()">
+            {% csrf_token %}
+
+            <!-- Hidden fields for AI triage data -->
+            <input type="hidden" name="presenting_symptoms" :value="selectedSymptoms.join(', ')">
+            <input type="hidden" name="ai_triage_notes" :value="triageResult?.triage_notes || ''">
+
+            <!-- Primary Identification -->
+            <div class="bg-yellow-50 rounded-lg p-4 border border-yellow-100">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                    <svg class="w-5 h-5 text-yellow-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"/>
+                    </svg>
+                    Primary Identification
+                </h3>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">National ID *</label>
+                    {{ form.national_id }}
+                    {% if form.national_id.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.national_id.errors.0 }}</p>
+                    {% endif %}
+                    <p class="mt-1 text-xs text-gray-500">This will be the primary identifier for the patient</p>
+                </div>
+            </div>
+
+            <!-- Personal Information -->
+            <h3 class="text-lg font-semibold text-gray-800">Personal Information</h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">First Name *</label>
+                    {{ form.first_name }}
+                    {% if form.first_name.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.first_name.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Last Name *</label>
+                    {{ form.last_name }}
+                    {% if form.last_name.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.last_name.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Email Address *</label>
+                {{ form.email }}
+                {% if form.email.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.email.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                {{ form.phone }}
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Date of Birth</label>
+                    {{ form.date_of_birth }}
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Gender</label>
+                    {{ form.gender }}
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Address</label>
+                {{ form.address }}
+            </div>
+
+            <hr class="border-gray-200">
+
+            <h3 class="text-lg font-semibold text-gray-800">Medical Information</h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Blood Group</label>
+                    {{ form.blood_group }}
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Known Allergies</label>
+                {{ form.allergies }}
+                <p class="mt-1 text-xs text-gray-500">List any known allergies (medications, food, etc.)</p>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Chronic Conditions</label>
+                {{ form.chronic_conditions }}
+                <p class="mt-1 text-xs text-gray-500">List any existing chronic conditions (diabetes, hypertension, etc.)</p>
+            </div>
+
+            <hr class="border-gray-200">
+
+            <h3 class="text-lg font-semibold text-gray-800">Emergency Contact</h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Contact Name</label>
+                    {{ form.emergency_contact_name }}
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Contact Phone</label>
+                    {{ form.emergency_contact_phone }}
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end space-x-4 pt-4 border-t border-gray-200">
+                <a href="{% url 'accounts:dashboard' %}" class="px-4 py-2 text-gray-700 hover:text-gray-900">Cancel</a>
+                <button type="submit" class="px-6 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium">
+                    Register Patient
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+<script>
+function idScanner() {
+    return {
+        preview: null,
+        imageFile: null,
+        isProcessing: false,
+        statusMsg: '',
+        statusType: '',
+        // extractedData holds OCR result for the review step before applying to the form
+        extractedData: { national_id: '', first_name: '', last_name: '', date_of_birth: '', gender: '', address: '' },
+        hasExtracted: false,
+
+        onImageSelected(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            this.imageFile = file;
+            this.statusMsg = '';
+            this.statusType = '';
+
+            const reader = new FileReader();
+            reader.onload = (e) => { this.preview = e.target.result; };
+            reader.readAsDataURL(file);
+
+            // Try QR code first — instant, no server needed
+            this.tryQRCode(file);
+        },
+
+        tryQRCode(file) {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0);
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+                const code = typeof jsQR !== 'undefined'
+                    ? jsQR(imageData.data, canvas.width, canvas.height)
+                    : null;
+
+                if (code && code.data) {
+                    const parsed = this.parseQRData(code.data);
+                    if (parsed && Object.values(parsed).some(v => v)) {
+                        const filled = this.fillFormFields(parsed);
+                        this.statusMsg = `QR code detected! ${filled} field(s) filled automatically.`;
+                        this.statusType = 'success';
+                        return;
+                    }
+                }
+                this.statusMsg = 'No QR code found. Click "Extract Information" to use OCR.';
+                this.statusType = 'info';
+            };
+            img.src = URL.createObjectURL(file);
+        },
+
+        parseQRData(qrString) {
+            try {
+                const json = JSON.parse(qrString);
+                return {
+                    national_id:    json.id || json.national_id || json.ID || '',
+                    first_name:     json.first_name || json.firstName || json.given_name || '',
+                    last_name:      json.last_name  || json.lastName  || json.family_name || '',
+                    date_of_birth:  json.dob || json.date_of_birth || json.birth_date || '',
+                    gender:         (json.gender || json.sex || '').toLowerCase(),
+                    address:        json.address || '',
+                };
+            } catch (_) {
+                const obj = {};
+                qrString.split(/[;\n|]/).forEach(part => {
+                    const [k, ...rest] = part.split('=');
+                    if (k && rest.length) obj[k.trim().toLowerCase()] = rest.join('=').trim();
+                });
+                if (Object.keys(obj).length) {
+                    return {
+                        national_id:    obj['id'] || obj['national_id'] || '',
+                        first_name:     obj['first_name'] || obj['name'] || '',
+                        last_name:      obj['last_name'] || obj['surname'] || '',
+                        date_of_birth:  obj['dob'] || obj['date_of_birth'] || '',
+                        gender:         (obj['gender'] || obj['sex'] || '').toLowerCase(),
+                        address:        obj['address'] || '',
+                    };
+                }
+                return null;
+            }
+        },
+
+        async extractFromImage() {
+            if (!this.imageFile || this.isProcessing) return;
+            this.isProcessing = true;
+            this.statusMsg = 'Reading ID card\u2026 (first scan loads models ~20s, then ~3-5s each)';
+            this.statusType = 'info';
+
+            const formData = new FormData();
+            formData.append('id_image', this.imageFile);
+
+            try {
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                const response = await fetch('/patients/api/scan-id/', {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': csrfToken },
+                    body: formData,
+                });
+                const result = await response.json();
+
+                if (result.success && result.data) {
+                    const hasData = Object.values(result.data).some(v => v);
+                    if (hasData) {
+                        // Store in review panel — receptionist can correct before applying
+                        this.extractedData = Object.assign(
+                            { national_id: '', first_name: '', last_name: '', date_of_birth: '', gender: '', address: '' },
+                            result.data
+                        );
+                        this.hasExtracted = true;
+                        this.statusMsg = 'Data extracted — review below, then click Apply to Form.';
+                        this.statusType = 'success';
+                    } else {
+                        this.statusMsg = 'Could not read fields clearly. Please fill in manually.';
+                        this.statusType = 'error';
+                    }
+                } else {
+                    this.statusMsg = result.error || 'Extraction failed. Please fill in manually.';
+                    this.statusType = 'error';
+                }
+            } catch (err) {
+                this.statusMsg = 'Network error. Please fill in manually.';
+                this.statusType = 'error';
+            } finally {
+                this.isProcessing = false;
+            }
+        },
+
+        fillFormFields(data) {
+            const fieldMap = {
+                national_id:   'id_national_id',
+                first_name:    'id_first_name',
+                last_name:     'id_last_name',
+                date_of_birth: 'id_date_of_birth',
+                gender:        'id_gender',
+                address:       'id_address',
+            };
+
+            let count = 0;
+            Object.entries(data).forEach(([key, value]) => {
+                if (!value) return;
+                const el = document.getElementById(fieldMap[key]);
+                if (!el) return;
+
+                if (el.tagName === 'SELECT') {
+                    const opt = [...el.options].find(o =>
+                        o.value.toLowerCase() === value.toLowerCase()
+                    );
+                    if (opt) { opt.selected = true; count++; }
+                } else {
+                    el.value = value;
+                    count++;
+                }
+
+                // Green highlight — removed on first manual edit
+                el.classList.add('ring-2', 'ring-green-400', 'border-green-400');
+                el.addEventListener('input', () => {
+                    el.classList.remove('ring-2', 'ring-green-400', 'border-green-400');
+                }, { once: true });
+            });
+            return count;
+        },
+
+        clearImage() {
+            this.preview = null;
+            this.imageFile = null;
+            this.statusMsg = '';
+            this.statusType = '';
+            this.extractedData = { national_id: '', first_name: '', last_name: '', date_of_birth: '', gender: '', address: '' };
+            this.hasExtracted = false;
+            document.getElementById('id-card-input').value = '';
+        },
+
+        applyToForm() {
+            if (!this.hasExtracted) return;
+            const filled = this.fillFormFields(this.extractedData);
+            this.hasExtracted = false;
+            this.statusMsg = filled > 0
+                ? `${filled} field(s) applied to the registration form below.`
+                : 'No fields were applied — please fill in manually.';
+            this.statusType = filled > 0 ? 'success' : 'error';
+        },
+
+        openCalibration() {
+            window.dispatchEvent(new CustomEvent('open-calibration'));
+        },
+    };
+}
+
+function cardCalibrator() {
+    return {
+        open: false,
+        step: 1,
+        blocks: [],
+        mapping: [],
+        learning: false,
+        saving: false,
+        saveMsg: '',
+        saveOk: false,
+
+        reset() {
+            this.step = 1;
+            this.blocks = [];
+            this.mapping = [];
+            this.learning = false;
+            this.saveMsg = '';
+        },
+
+        async onLearnImage(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            this.learning = true;
+            this.blocks = [];
+            this.mapping = [];
+
+            const formData = new FormData();
+            formData.append('id_image', file);
+
+            try {
+                const csrf = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                const res = await fetch('/patients/api/scan-id/learn/', {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': csrf },
+                    body: formData,
+                });
+                const data = await res.json();
+                if (data.success) {
+                    this.blocks = data.blocks;
+                    this.mapping = data.blocks.map(() => '');
+                    this.step = 2;
+                } else {
+                    alert(data.error || 'Could not read the card. Please try again.');
+                }
+            } catch (e) {
+                alert('Network error. Please try again.');
+            } finally {
+                this.learning = false;
+                document.getElementById('learn-input').value = '';
+            }
+        },
+
+        async saveProfile() {
+            this.saving = true;
+            this.saveMsg = '';
+            // Convert empty string "" → null for "skip"
+            const mappingToSave = this.mapping.map(v => v || null);
+
+            try {
+                const csrf = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                const res = await fetch('/patients/api/scan-id/save-profile/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrf,
+                    },
+                    body: JSON.stringify({ mapping: mappingToSave }),
+                });
+                const data = await res.json();
+                if (data.success) {
+                    this.saveOk = true;
+                    this.saveMsg = data.message + ' Future scans will use this layout.';
+                    setTimeout(() => { this.open = false; this.reset(); }, 2500);
+                } else {
+                    this.saveOk = false;
+                    this.saveMsg = data.error || 'Save failed.';
+                }
+            } catch (e) {
+                this.saveOk = false;
+                this.saveMsg = 'Network error.';
+            } finally {
+                this.saving = false;
+            }
+        },
+    };
+}
+
+function patientRegistration() {
+    return {
+        selectedSymptoms: [],
+        symptomInput: '',
+        isAnalyzing: false,
+        triageResult: null,
+        symptomKeywords: {{ symptom_keywords|safe|default:'[]' }},
+
+        get filteredKeywords() {
+            if (!this.symptomInput) return [];
+            const input = this.symptomInput.toLowerCase();
+            return this.symptomKeywords.filter(k =>
+                k.toLowerCase().includes(input) &&
+                !this.selectedSymptoms.includes(k)
+            ).slice(0, 5);
+        },
+
+        addSymptom() {
+            const symptom = this.symptomInput.trim();
+            if (symptom && !this.selectedSymptoms.includes(symptom)) {
+                this.selectedSymptoms.push(symptom);
+                this.symptomInput = '';
+                this.triageResult = null; // Reset triage when symptoms change
+            }
+        },
+
+        removeSymptom(index) {
+            this.selectedSymptoms.splice(index, 1);
+            this.triageResult = null;
+        },
+
+        selectKeyword(keyword) {
+            if (!this.selectedSymptoms.includes(keyword)) {
+                this.selectedSymptoms.push(keyword);
+            }
+            this.symptomInput = '';
+            this.triageResult = null;
+        },
+
+        async analyzeSymptoms() {
+            if (this.selectedSymptoms.length === 0) return;
+
+            this.isAnalyzing = true;
+            try {
+                const response = await fetch('/patients/api/symptom-chatbot/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                    },
+                    body: JSON.stringify({
+                        symptoms: this.selectedSymptoms
+                    })
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    this.triageResult = data;
+                }
+            } catch (error) {
+                console.error('Error analyzing symptoms:', error);
+            } finally {
+                this.isAnalyzing = false;
+            }
+        },
+
+        prepareSubmit() {
+            // Data is already bound to hidden fields via x-model
+            return true;
+        }
+    }
+}
+</script>
+{% endblock %}

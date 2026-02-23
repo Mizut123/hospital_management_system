@@ -1,0 +1,264 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Patient Dashboard - HMS{% endblock %}
+
+{% block page_title %}
+<span class="flex items-center">
+    <span>Welcome back, {{ user.first_name }}</span>
+    <span class="ml-3 px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">Patient</span>
+</span>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-6 animate-fade-in">
+    <!-- Quick Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- Total Visits -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-500">Total Visits</p>
+                    <p class="text-3xl font-bold text-gray-800 mt-1">{{ total_visits|default:0 }}</p>
+                </div>
+                <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                    <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upcoming Appointments -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-500">Upcoming Appointments</p>
+                    <p class="text-3xl font-bold text-gray-800 mt-1">{{ upcoming_appointments|length|default:0 }}</p>
+                </div>
+                <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                    <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- Active Prescriptions -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-500">Active Prescriptions</p>
+                    <p class="text-3xl font-bold text-gray-800 mt-1">{{ active_prescriptions|length|default:0 }}</p>
+                </div>
+                <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
+                    <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- Health Score (AI) -->
+        <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-sm p-6 text-white hover:shadow-md transition-shadow">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-blue-100">AI Health Score</p>
+                    {% if risk_score %}
+                    <p class="text-3xl font-bold mt-1">{{ risk_score.score }}/100</p>
+                    <p class="text-xs text-blue-100 mt-1">{{ risk_score.level }}</p>
+                    {% else %}
+                    <p class="text-3xl font-bold mt-1">--</p>
+                    <p class="text-xs text-blue-100 mt-1">Complete profile for insights</p>
+                    {% endif %}
+                </div>
+                <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Upcoming Appointments -->
+        <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100">
+            <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+                <h2 class="text-lg font-semibold text-gray-800">Upcoming Appointments</h2>
+                <a href="{% url 'appointments:book' %}" class="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                    </svg>
+                    Book New
+                </a>
+            </div>
+            <div class="p-6">
+                {% if upcoming_appointments %}
+                <div class="space-y-4">
+                    {% for appointment in upcoming_appointments %}
+                    <div class="flex items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                        <div class="flex-shrink-0 w-14 h-14 bg-blue-100 rounded-lg flex flex-col items-center justify-center">
+                            <span class="text-xs font-medium text-blue-600">{{ appointment.scheduled_date|date:"M" }}</span>
+                            <span class="text-lg font-bold text-blue-800">{{ appointment.scheduled_date|date:"d" }}</span>
+                        </div>
+                        <div class="ml-4 flex-1">
+                            <p class="font-medium text-gray-800">Dr. {{ appointment.doctor.get_full_name }}</p>
+                            <p class="text-sm text-gray-500">{{ appointment.department.name }} - {{ appointment.scheduled_time|time:"H:i" }}</p>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="px-3 py-1 text-xs font-medium rounded-full
+                                {% if appointment.status == 'confirmed' %}bg-green-100 text-green-800
+                                {% elif appointment.status == 'scheduled' %}bg-blue-100 text-blue-800
+                                {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                {{ appointment.get_status_display }}
+                            </span>
+                            <a href="{% url 'appointments:detail' appointment.pk %}" class="p-2 text-gray-400 hover:text-gray-600">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-12">
+                    <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    <p class="text-gray-500 mb-4">No upcoming appointments</p>
+                    <a href="{% url 'appointments:book' %}" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                        </svg>
+                        Book an Appointment
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Quick Actions & Health Tips -->
+        <div class="space-y-6">
+            <!-- Quick Actions -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                <h2 class="text-lg font-semibold text-gray-800 mb-4">Quick Actions</h2>
+                <div class="space-y-3">
+                    <a href="{% url 'appointments:book' %}" class="flex items-center p-3 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors group">
+                        <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center group-hover:bg-blue-200">
+                            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                        </div>
+                        <span class="ml-3 font-medium text-gray-700">Book Appointment</span>
+                    </a>
+                    <a href="{% url 'medical_records:my_records' %}" class="flex items-center p-3 bg-green-50 rounded-lg hover:bg-green-100 transition-colors group">
+                        <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center group-hover:bg-green-200">
+                            <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                        </div>
+                        <span class="ml-3 font-medium text-gray-700">View Medical Records</span>
+                    </a>
+                    <a href="{% url 'medical_records:my_prescriptions' %}" class="flex items-center p-3 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors group">
+                        <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center group-hover:bg-purple-200">
+                            <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
+                            </svg>
+                        </div>
+                        <span class="ml-3 font-medium text-gray-700">My Prescriptions</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- AI Health Tips -->
+            <div class="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl shadow-sm p-6 text-white">
+                <div class="flex items-center mb-4">
+                    <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                    </svg>
+                    <h2 class="text-lg font-semibold">AI Health Insights</h2>
+                </div>
+                <p class="text-indigo-100 text-sm mb-4">
+                    Based on your health profile, here are personalized recommendations:
+                </p>
+                <ul class="space-y-2 text-sm">
+                    <li class="flex items-start">
+                        <svg class="w-5 h-5 mr-2 flex-shrink-0 text-indigo-200" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                        <span>Schedule regular check-ups every 6 months</span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="w-5 h-5 mr-2 flex-shrink-0 text-indigo-200" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                        <span>Keep your medical records updated</span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="w-5 h-5 mr-2 flex-shrink-0 text-indigo-200" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                        <span>Complete your health profile for better insights</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Medical Records -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100">
+        <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+            <h2 class="text-lg font-semibold text-gray-800">Recent Medical Records</h2>
+            <a href="{% url 'medical_records:my_records' %}" class="text-sm text-blue-600 hover:text-blue-700 font-medium">View All</a>
+        </div>
+        <div class="p-6">
+            {% if recent_records %}
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead>
+                        <tr class="text-left text-sm font-medium text-gray-500 border-b border-gray-100">
+                            <th class="pb-3">Date</th>
+                            <th class="pb-3">Doctor</th>
+                            <th class="pb-3">Complaint</th>
+                            <th class="pb-3">Diagnosis</th>
+                            <th class="pb-3"></th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        {% for record in recent_records %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="py-4 text-sm text-gray-800">{{ record.visit_date|date:"M d, Y" }}</td>
+                            <td class="py-4 text-sm text-gray-800">Dr. {{ record.doctor.get_full_name }}</td>
+                            <td class="py-4 text-sm text-gray-600">{{ record.chief_complaint|truncatechars:30 }}</td>
+                            <td class="py-4">
+                                {% if record.diagnoses.exists %}
+                                <span class="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded">
+                                    {{ record.diagnoses.first.description|truncatechars:20 }}
+                                </span>
+                                {% else %}
+                                <span class="text-sm text-gray-400">-</span>
+                                {% endif %}
+                            </td>
+                            <td class="py-4">
+                                <a href="{% url 'medical_records:detail' record.pk %}" class="text-blue-600 hover:text-blue-700 text-sm font-medium">View</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-8 text-gray-500">
+                <svg class="w-12 h-12 mx-auto text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                <p>No medical records yet</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

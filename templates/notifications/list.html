@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block title %}Notifications - HMS{% endblock %}
+
+{% block page_title %}Notifications{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+        <div>
+            <h2 class="text-2xl font-bold text-gray-800">All Notifications</h2>
+            <p class="text-gray-500">Stay updated with your hospital activities</p>
+        </div>
+        {% if notifications %}
+        <a href="{% url 'notifications:mark_all_read' %}" class="px-4 py-2 text-blue-600 hover:text-blue-700 font-medium">
+            Mark all as read
+        </a>
+        {% endif %}
+    </div>
+
+    <!-- Notifications List -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        {% if notifications %}
+        <div class="divide-y divide-gray-100">
+            {% for notification in notifications %}
+            <a href="{% url 'notifications:mark_read' notification.pk %}"
+               class="block p-4 hover:bg-gray-50 transition-colors {% if not notification.is_read %}bg-blue-50{% endif %}">
+                <div class="flex items-start">
+                    <div class="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center
+                        {% if notification.notification_type == 'appointment' %}bg-blue-100 text-blue-600
+                        {% elif notification.notification_type == 'prescription' %}bg-green-100 text-green-600
+                        {% elif notification.notification_type == 'lab_result' %}bg-purple-100 text-purple-600
+                        {% elif notification.notification_type == 'alert' %}bg-red-100 text-red-600
+                        {% else %}bg-gray-100 text-gray-600{% endif %}">
+                        {% if notification.notification_type == 'appointment' %}
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                        {% elif notification.notification_type == 'prescription' %}
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
+                        </svg>
+                        {% else %}
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                        </svg>
+                        {% endif %}
+                    </div>
+                    <div class="ml-4 flex-1">
+                        <div class="flex items-center justify-between">
+                            <p class="text-sm font-medium text-gray-800">{{ notification.title }}</p>
+                            <span class="text-xs text-gray-500">{{ notification.created_at|timesince }} ago</span>
+                        </div>
+                        <p class="text-sm text-gray-500 mt-1">{{ notification.message }}</p>
+                    </div>
+                    {% if not notification.is_read %}
+                    <div class="ml-4">
+                        <span class="w-2 h-2 bg-blue-500 rounded-full block"></span>
+                    </div>
+                    {% endif %}
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="p-12 text-center">
+            <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+            </svg>
+            <p class="text-gray-500">No notifications yet</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

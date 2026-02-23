@@ -1,0 +1,294 @@
+<!-- Sidebar -->
+<aside class="fixed inset-y-0 left-0 z-50 bg-gradient-to-b from-blue-900 to-blue-800 text-white shadow-xl transition-all duration-300"
+       :class="sidebarOpen ? 'w-64' : 'w-20'">
+
+    <!-- Logo -->
+    <div class="h-16 flex items-center px-4 border-b border-blue-700">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
+                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                </svg>
+            </div>
+            <span x-show="sidebarOpen" x-transition class="font-bold text-lg">HMS</span>
+        </div>
+    </div>
+
+    <!-- Toggle button -->
+    <button @click="sidebarOpen = !sidebarOpen"
+            class="absolute -right-3 top-20 w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center shadow-lg hover:bg-blue-500 transition-colors">
+        <svg class="w-4 h-4 transition-transform" :class="sidebarOpen ? '' : 'rotate-180'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+        </svg>
+    </button>
+
+    <!-- Navigation -->
+    <nav class="mt-6 px-3">
+        <!-- Dashboard -->
+        <a href="{% url 'accounts:dashboard' %}"
+           class="flex items-center px-4 py-3 mb-1 rounded-lg transition-all duration-200 {% if request.resolver_match.url_name == 'dashboard' or 'dashboard' in request.resolver_match.url_name %}bg-blue-700 text-white{% else %}text-blue-100 hover:bg-blue-700/50{% endif %}">
+            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+            </svg>
+            <span x-show="sidebarOpen" x-transition class="ml-3">Dashboard</span>
+        </a>
+
+        {% if user.is_patient %}
+        <!-- Patient Menu -->
+        <div class="mt-4 mb-2" x-show="sidebarOpen">
+            <span class="px-4 text-xs font-semibold text-blue-300 uppercase tracking-wider">Patient</span>
+        </div>
+
+        <a href="{% url 'appointments:my_appointments' %}"
+           class="flex items-center px-4 py-3 mb-1 rounded-lg transition-all duration-200 text-blue-100 hover:bg-blue-700/50">
+            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+            </svg>
+            <span x-show="sidebarOpen" x-transition class="ml-3">My Appointments</span>
+        </a>
+
+        <a href="{% url 'appointments:book' %}"
+           class="flex items-center px-4 py-3 mb-1 rounded-lg transition-all duration-200 text-blue-100 hover:bg-blue-700/50">
+            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+            </svg>
+            <span x-show="sidebarOpen" x-transition class="ml-3">Book Appointment</span>
+        </a>
+
+        <a href="{% url 'medical_records:my_records' %}"
+           class="flex items-center px-4 py-3 mb-1 rounded-lg transition-all duration-200 text-blue-100 hover:bg-blue-700/50">
+            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+            <span x-show="sidebarOpen" x-transition class="ml-3">Medical Records</span>
+        </a>
+
+        <a href="{% url 'medical_records:my_prescriptions' %}"
+           class="flex items-center px-4 py-3 mb-1 rounded-lg transition-all duration-200 text-blue-100 hover:bg-blue-700/50">
+            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
+            </svg>
+            <span x-show="sidebarOpen" x-transition class="ml-3">Prescriptions</span>
+        </a>
+        {% endif %}
+
+        {% if user.is_doctor %}
+        <!-- Doctor Menu -->
+        <div class="mt-4 mb-2" x-show="sidebarOpen">
+            <span class="px-4 text-xs font-semibold text-blue-300 uppercase tracking-wider">Doctor</span>
+        </div>
+
+        <a href="{% url 'appointments:doctor_queue' %}"
+           class="flex items-center px-4 py-3 mb-1 rounded-lg transition-all duration-200 text-blue-100 hover:bg-blue-700/50">
+            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+            </svg>
+            <span x-show="sidebarOpen" x-transition class="ml-3">Patient Queue</span>
+        </a>
+
+        <a href="{% url 'patients:list' %}"
+           class="flex items-center px-4 py-3 mb-1 rounded-lg transition-all duration-200 text-blue-100 hover:bg-blue-700/50">
+            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+            </svg>
+            <span x-show="sidebarOpen" x-transition class="ml-3">Patients</span>
+        </a>
+
+        <a href="{% url 'medical_records:doctor_records' %}"
+           class="flex items-center px-4 py-3 mb-1 rounded-lg transition-all duration-200 text-blue-100 hover:bg-blue-700/50">
+            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+            </svg>
+            <span x-show="sidebarOpen" x-transition class="ml-3">Medical Records</span>
+        </a>
+
+        <a href="{% url 'appointments:schedule' %}"
+           class="flex items-center px-4 py-3 mb-1 rounded-lg transition-all duration-200 text-blue-100 hover:bg-blue-700/50">
+            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <span x-show="sidebarOpen" x-transition class="ml-3">My Schedule</span>
+        </a>
+
+        <!-- AI/ML Tools -->
+        <div class="mt-4 mb-2" x-show="sidebarOpen">
+            <span class="px-4 text-xs font-semibold text-blue-300 uppercase tracking-wider">AI Tools</span>
+        </div>
+
+        <a href="{% url 'ai_services:predict' %}"
+           class="flex items-center px-4 py-3 mb-1 rounded-lg transition-all duration-200 text-blue-100 hover:bg-blue-700/50">
+            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/>
+            </svg>
+            <span x-show="sidebarOpen" x-transition class="ml-3">Disease Prediction</span>
+        </a>
+
+        <a href="{% url 'ai_services:ml_dashboard' %}"
+           class="flex items-center px-4 py-3 mb-1 rounded-lg transition-all duration-200 text-blue-100 hover:bg-blue-700/50">
+            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+            </svg>
+            <span x-show="sidebarOpen" x-transition class="ml-3">ML Dashboard</span>
+        </a>
+        {% endif %}
+
+        {% if user.is_receptionist %}
+        <!-- Receptionist Menu -->
+        <div class="mt-4 mb-2" x-show="sidebarOpen">
+            <span class="px-4 text-xs font-semibold text-blue-300 uppercase tracking-wider">Reception</span>
+        </div>
+
+        <a href="{% url 'patients:register' %}"
+           class="flex items-center px-4 py-3 mb-1 rounded-lg transition-all duration-200 text-blue-100 hover:bg-blue-700/50">
+            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+            </svg>
+            <span x-show="sidebarOpen" x-transition class="ml-3">Register Patient</span>
+        </a>
+
+        <a href="{% url 'appointments:queue' %}"
+           class="flex items-center px-4 py-3 mb-1 rounded-lg transition-all duration-200 text-blue-100 hover:bg-blue-700/50">
+            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+            </svg>
+            <span x-show="sidebarOpen" x-transition class="ml-3">Queue Management</span>
+        </a>
+
+        <a href="{% url 'appointments:book_for_patient' %}"
+           class="flex items-center px-4 py-3 mb-1 rounded-lg transition-all duration-200 text-blue-100 hover:bg-blue-700/50">
+            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+            </svg>
+            <span x-show="sidebarOpen" x-transition class="ml-3">Book Appointment</span>
+        </a>
+
+        <a href="{% url 'patients:search' %}"
+           class="flex items-center px-4 py-3 mb-1 rounded-lg transition-all duration-200 text-blue-100 hover:bg-blue-700/50">
+            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            </svg>
+            <span x-show="sidebarOpen" x-transition class="ml-3">Search Patients</span>
+        </a>
+        {% endif %}
+
+        {% if user.is_pharmacist %}
+        <!-- Pharmacist Menu -->
+        <div class="mt-4 mb-2" x-show="sidebarOpen">
+            <span class="px-4 text-xs font-semibold text-blue-300 uppercase tracking-wider">Pharmacy</span>
+        </div>
+
+        <a href="{% url 'pharmacy:prescriptions' %}"
+           class="flex items-center px-4 py-3 mb-1 rounded-lg transition-all duration-200 text-blue-100 hover:bg-blue-700/50">
+            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+            </svg>
+            <span x-show="sidebarOpen" x-transition class="ml-3">Prescriptions</span>
+        </a>
+
+        <a href="{% url 'pharmacy:medicines' %}"
+           class="flex items-center px-4 py-3 mb-1 rounded-lg transition-all duration-200 text-blue-100 hover:bg-blue-700/50">
+            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
+            </svg>
+            <span x-show="sidebarOpen" x-transition class="ml-3">Medicines</span>
+        </a>
+
+        <a href="{% url 'pharmacy:stock' %}"
+           class="flex items-center px-4 py-3 mb-1 rounded-lg transition-all duration-200 text-blue-100 hover:bg-blue-700/50">
+            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+            </svg>
+            <span x-show="sidebarOpen" x-transition class="ml-3">Stock Management</span>
+        </a>
+
+        <a href="{% url 'pharmacy:alerts' %}"
+           class="flex items-center px-4 py-3 mb-1 rounded-lg transition-all duration-200 text-blue-100 hover:bg-blue-700/50">
+            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+            </svg>
+            <span x-show="sidebarOpen" x-transition class="ml-3">Alerts</span>
+        </a>
+        {% endif %}
+
+        {% if user.is_admin %}
+        <!-- Admin Menu -->
+        <div class="mt-4 mb-2" x-show="sidebarOpen">
+            <span class="px-4 text-xs font-semibold text-blue-300 uppercase tracking-wider">Administration</span>
+        </div>
+
+        <a href="{% url 'accounts:user_list' %}"
+           class="flex items-center px-4 py-3 mb-1 rounded-lg transition-all duration-200 text-blue-100 hover:bg-blue-700/50">
+            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+            </svg>
+            <span x-show="sidebarOpen" x-transition class="ml-3">User Management</span>
+        </a>
+
+        <a href="{% url 'accounts:department_list' %}"
+           class="flex items-center px-4 py-3 mb-1 rounded-lg transition-all duration-200 text-blue-100 hover:bg-blue-700/50">
+            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+            </svg>
+            <span x-show="sidebarOpen" x-transition class="ml-3">Departments</span>
+        </a>
+
+        <a href="{% url 'analytics:dashboard' %}"
+           class="flex items-center px-4 py-3 mb-1 rounded-lg transition-all duration-200 text-blue-100 hover:bg-blue-700/50">
+            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+            </svg>
+            <span x-show="sidebarOpen" x-transition class="ml-3">Analytics</span>
+        </a>
+
+        <a href="{% url 'accounts:audit_logs' %}"
+           class="flex items-center px-4 py-3 mb-1 rounded-lg transition-all duration-200 text-blue-100 hover:bg-blue-700/50">
+            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+            <span x-show="sidebarOpen" x-transition class="ml-3">Audit Logs</span>
+        </a>
+
+        <a href="{% url 'analytics:reports' %}"
+           class="flex items-center px-4 py-3 mb-1 rounded-lg transition-all duration-200 text-blue-100 hover:bg-blue-700/50">
+            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+            <span x-show="sidebarOpen" x-transition class="ml-3">Reports</span>
+        </a>
+
+        <!-- AI/ML Admin -->
+        <div class="mt-4 mb-2" x-show="sidebarOpen">
+            <span class="px-4 text-xs font-semibold text-blue-300 uppercase tracking-wider">AI / ML</span>
+        </div>
+
+        <a href="{% url 'ai_services:predict' %}"
+           class="flex items-center px-4 py-3 mb-1 rounded-lg transition-all duration-200 text-blue-100 hover:bg-blue-700/50">
+            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/>
+            </svg>
+            <span x-show="sidebarOpen" x-transition class="ml-3">Disease Prediction</span>
+        </a>
+
+        <a href="{% url 'ai_services:ml_dashboard' %}"
+           class="flex items-center px-4 py-3 mb-1 rounded-lg transition-all duration-200 text-blue-100 hover:bg-blue-700/50">
+            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+            </svg>
+            <span x-show="sidebarOpen" x-transition class="ml-3">ML Dashboard</span>
+        </a>
+        {% endif %}
+    </nav>
+
+    <!-- User info at bottom -->
+    <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-blue-700">
+        <div class="flex items-center" :class="sidebarOpen ? 'justify-start' : 'justify-center'">
+            <div class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold">
+                {{ user.first_name.0 }}{{ user.last_name.0 }}
+            </div>
+            <div x-show="sidebarOpen" x-transition class="ml-3">
+                <p class="text-sm font-medium text-white">{{ user.get_full_name }}</p>
+                <p class="text-xs text-blue-300">{{ user.get_role_display }}</p>
+            </div>
+        </div>
+    </div>
+</aside>

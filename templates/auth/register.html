@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Register - Hospital Management System{% endblock %}
+
+{% block auth_content %}
+<div class="min-h-screen flex">
+    <!-- Left side - Image/Branding -->
+    <div class="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-green-600 via-teal-600 to-blue-700 relative overflow-hidden">
+        <!-- Decorative elements -->
+        <div class="absolute inset-0">
+            <div class="absolute top-20 left-20 w-72 h-72 bg-green-500/20 rounded-full blur-3xl"></div>
+            <div class="absolute bottom-20 right-20 w-96 h-96 bg-blue-400/20 rounded-full blur-3xl"></div>
+        </div>
+
+        <!-- Content -->
+        <div class="relative z-10 flex flex-col justify-center items-center w-full p-12 text-white">
+            <div class="w-24 h-24 bg-white/10 backdrop-blur-lg rounded-2xl flex items-center justify-center mb-8">
+                <svg class="w-14 h-14 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+                </svg>
+            </div>
+            <h1 class="text-4xl font-bold mb-4 text-center">Join Our Healthcare Platform</h1>
+            <p class="text-xl text-green-100 text-center max-w-md">
+                Register as a patient to access your health records and book appointments online
+            </p>
+
+            <!-- Benefits list -->
+            <div class="mt-12 space-y-4">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <span>Book appointments online</span>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <span>View prescriptions & lab results</span>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <span>Get AI-powered health insights</span>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <span>Secure & private health data</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right side - Registration form -->
+    <div class="w-full lg:w-1/2 flex items-center justify-center p-8 overflow-y-auto">
+        <div class="w-full max-w-md">
+            <!-- Mobile logo -->
+            <div class="lg:hidden text-center mb-8">
+                <div class="w-16 h-16 bg-gradient-to-br from-green-500 to-teal-600 rounded-xl flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+                    </svg>
+                </div>
+            </div>
+
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-gray-800">Create your account</h2>
+                <p class="text-gray-500 mt-2">Register as a new patient</p>
+            </div>
+
+            <form method="post" class="space-y-5">
+                {% csrf_token %}
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="id_first_name" class="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+                        {{ form.first_name }}
+                    </div>
+                    <div>
+                        <label for="id_last_name" class="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+                        {{ form.last_name }}
+                    </div>
+                </div>
+
+                <div>
+                    <label for="id_email" class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                    {{ form.email }}
+                    {% if form.email.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.email.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label for="id_phone" class="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                    {{ form.phone }}
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="id_date_of_birth" class="block text-sm font-medium text-gray-700 mb-1">Date of Birth</label>
+                        {{ form.date_of_birth }}
+                    </div>
+                    <div>
+                        <label for="id_gender" class="block text-sm font-medium text-gray-700 mb-1">Gender</label>
+                        {{ form.gender }}
+                    </div>
+                </div>
+
+                <div>
+                    <label for="id_password1" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                    {{ form.password1 }}
+                    {% if form.password1.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.password1.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label for="id_password2" class="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
+                    {{ form.password2 }}
+                    {% if form.password2.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.password2.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div class="flex items-start">
+                    <input type="checkbox" required
+                           class="w-4 h-4 mt-0.5 text-green-600 border-gray-300 rounded focus:ring-green-500">
+                    <span class="ml-2 text-sm text-gray-600">
+                        I agree to the
+                        <a href="#" class="text-green-600 hover:text-green-700">Terms of Service</a>
+                        and
+                        <a href="#" class="text-green-600 hover:text-green-700">Privacy Policy</a>
+                    </span>
+                </div>
+
+                <button type="submit"
+                        class="w-full py-3 px-4 bg-gradient-to-r from-green-600 to-teal-600 text-white rounded-lg font-semibold hover:from-green-700 hover:to-teal-700 focus:ring-4 focus:ring-green-200 transition-all transform hover:scale-[1.02]">
+                    Create Account
+                </button>
+            </form>
+
+            <div class="mt-8 text-center">
+                <p class="text-gray-500">
+                    Already have an account?
+                    <a href="{% url 'accounts:login' %}" class="text-green-600 hover:text-green-700 font-medium">
+                        Sign in
+                    </a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

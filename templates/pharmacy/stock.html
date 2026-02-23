@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Stock Management - HMS{% endblock %}
+
+{% block content %}
+<div class="space-y-6 animate-fade-in">
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-800">Stock Management</h1>
+            <p class="text-gray-500 mt-1">Manage medicine inventory and stock levels</p>
+        </div>
+        <div class="flex items-center space-x-3">
+            <a href="{% url 'pharmacy:alerts' %}" class="px-4 py-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition-colors font-medium flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+                Stock Alerts
+                {% if alerts_count %}<span class="ml-2 px-2 py-0.5 bg-red-100 text-red-800 text-xs rounded-full">{{ alerts_count }}</span>{% endif %}
+            </a>
+            <a href="{% url 'pharmacy:transactions' %}" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                </svg>
+                Transactions
+            </a>
+            <a href="{% url 'pharmacy:add_stock' %}" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                Add Stock
+            </a>
+        </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+            <p class="text-sm text-gray-500">Total Items</p>
+            <p class="text-2xl font-bold text-gray-800">{{ total_items|default:0 }}</p>
+        </div>
+        <div class="bg-green-50 rounded-xl border border-green-100 p-4">
+            <p class="text-sm text-green-600">In Stock</p>
+            <p class="text-2xl font-bold text-green-700">{{ in_stock|default:0 }}</p>
+        </div>
+        <div class="bg-yellow-50 rounded-xl border border-yellow-100 p-4">
+            <p class="text-sm text-yellow-600">Low Stock</p>
+            <p class="text-2xl font-bold text-yellow-700">{{ low_stock|default:0 }}</p>
+        </div>
+        <div class="bg-red-50 rounded-xl border border-red-100 p-4">
+            <p class="text-sm text-red-600">Out of Stock</p>
+            <p class="text-2xl font-bold text-red-700">{{ out_of_stock|default:0 }}</p>
+        </div>
+    </div>
+
+    <!-- Stock Table -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100">
+        <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+            <h2 class="text-lg font-semibold text-gray-800">Inventory</h2>
+            <div class="flex items-center space-x-2">
+                <select class="px-3 py-1.5 border border-gray-300 rounded-lg text-sm">
+                    <option>All Status</option>
+                    <option>In Stock</option>
+                    <option>Low Stock</option>
+                    <option>Out of Stock</option>
+                </select>
+            </div>
+        </div>
+
+        {% if stock_items %}
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Medicine</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Current Stock</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reorder Level</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Expiry Date</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    {% for item in stock_items %}
+                    <tr class="hover:bg-gray-50 {% if item.quantity <= item.reorder_level %}bg-red-50{% endif %}">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div>
+                                <p class="font-medium text-gray-800">{{ item.medicine.name }}</p>
+                                <p class="text-sm text-gray-500">{{ item.batch_number|default:"No batch" }}</p>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="text-lg font-semibold {% if item.quantity <= item.reorder_level %}text-red-600{% elif item.quantity == 0 %}text-gray-400{% else %}text-gray-800{% endif %}">
+                                {{ item.quantity }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-gray-600">
+                            {{ item.reorder_level }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            {% if item.expiry_date %}
+                            <span class="{% if item.expiry_date < today %}text-red-600{% elif item.days_to_expiry < 30 %}text-yellow-600{% else %}text-gray-600{% endif %}">
+                                {{ item.expiry_date|date:"M d, Y" }}
+                            </span>
+                            {% else %}
+                            <span class="text-gray-400">-</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            {% if item.quantity == 0 %}
+                            <span class="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded-full">Out of Stock</span>
+                            {% elif item.quantity <= item.reorder_level %}
+                            <span class="px-2 py-1 text-xs font-medium bg-red-100 text-red-800 rounded-full">Low Stock</span>
+                            {% else %}
+                            <span class="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">In Stock</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center space-x-2">
+                                <a href="{% url 'pharmacy:edit_stock' item.pk %}" class="px-3 py-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors text-sm font-medium">
+                                    Edit
+                                </a>
+                                <a href="{% url 'pharmacy:adjust_stock' item.pk %}" class="px-3 py-1.5 text-green-600 hover:bg-green-50 rounded-lg transition-colors text-sm font-medium">
+                                    Adjust
+                                </a>
+                                <a href="{% url 'pharmacy:stock_transactions' item.pk %}" class="px-3 py-1.5 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors text-sm font-medium">
+                                    History
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="p-12 text-center">
+            <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+            </svg>
+            <h3 class="text-lg font-medium text-gray-800 mb-2">No stock items</h3>
+            <p class="text-gray-500">Add stock entries to track inventory.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

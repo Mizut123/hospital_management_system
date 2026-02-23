@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Appointment Details - HMS{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto space-y-6 animate-fade-in">
+    <!-- Back Button -->
+    <a href="{% url 'appointments:my_appointments' %}" class="inline-flex items-center text-gray-600 hover:text-gray-800">
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+        </svg>
+        Back to Appointments
+    </a>
+
+    <!-- Appointment Card -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <!-- Status Banner -->
+        <div class="px-6 py-4
+            {% if appointment.status == 'scheduled' %}bg-blue-500
+            {% elif appointment.status == 'confirmed' %}bg-green-500
+            {% elif appointment.status == 'completed' %}bg-gray-500
+            {% elif appointment.status == 'cancelled' %}bg-red-500
+            {% elif appointment.status == 'checked_in' %}bg-orange-500
+            {% elif appointment.status == 'in_progress' %}bg-purple-500
+            {% else %}bg-gray-500{% endif %} text-white">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    <span class="text-lg font-semibold">Appointment {{ appointment.get_status_display }}</span>
+                </div>
+                {% if appointment.queue_number %}
+                <span class="px-3 py-1 bg-white/20 rounded-lg font-medium">Queue #{{ appointment.queue_number }}</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="p-6">
+            <!-- Date & Time -->
+            <div class="flex items-center mb-6 pb-6 border-b border-gray-100">
+                <div class="w-20 h-20 bg-blue-100 rounded-xl flex flex-col items-center justify-center mr-6">
+                    <span class="text-sm font-medium text-blue-600">{{ appointment.scheduled_date|date:"M" }}</span>
+                    <span class="text-3xl font-bold text-blue-700">{{ appointment.scheduled_date|date:"d" }}</span>
+                    <span class="text-xs text-blue-600">{{ appointment.scheduled_date|date:"Y" }}</span>
+                </div>
+                <div>
+                    <p class="text-2xl font-bold text-gray-800">{{ appointment.scheduled_date|date:"l" }}</p>
+                    <p class="text-lg text-gray-600">{{ appointment.scheduled_time|time:"H:i" }}</p>
+                    {% if appointment.estimated_wait and appointment.status == 'checked_in' %}
+                    <p class="text-sm text-orange-600 mt-1">Estimated wait: {{ appointment.estimated_wait }} minutes</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Doctor Info -->
+            <div class="grid grid-cols-2 gap-6 mb-6">
+                <div>
+                    <h3 class="text-sm font-medium text-gray-500 mb-2">Doctor</h3>
+                    <div class="flex items-center">
+                        <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mr-3">
+                            <span class="text-lg font-medium text-gray-600">{{ appointment.doctor.first_name.0 }}{{ appointment.doctor.last_name.0 }}</span>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-gray-800">Dr. {{ appointment.doctor.get_full_name }}</p>
+                            {% if appointment.department %}
+                            <p class="text-sm text-gray-500">{{ appointment.department.name }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                {% if appointment.appointment_type %}
+                <div>
+                    <h3 class="text-sm font-medium text-gray-500 mb-2">Appointment Type</h3>
+                    <span class="px-3 py-1 bg-gray-100 rounded-lg text-gray-800 font-medium">
+                        {{ appointment.get_appointment_type_display|default:"Regular" }}
+                    </span>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Reason -->
+            {% if appointment.reason %}
+            <div class="mb-6">
+                <h3 class="text-sm font-medium text-gray-500 mb-2">Reason for Visit</h3>
+                <p class="text-gray-800 bg-gray-50 p-4 rounded-lg">{{ appointment.reason }}</p>
+            </div>
+            {% endif %}
+
+            <!-- Actions -->
+            {% if appointment.status in 'scheduled,confirmed' %}
+            <div class="flex items-center justify-end space-x-4 pt-6 border-t border-gray-100">
+                <a href="{% url 'appointments:cancel' appointment.pk %}"
+                   class="px-6 py-2.5 border border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition-colors font-medium"
+                   onclick="return confirm('Are you sure you want to cancel this appointment?')">
+                    Cancel Appointment
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Additional Info -->
+    <div class="bg-blue-50 rounded-xl p-6">
+        <h3 class="font-semibold text-blue-800 mb-2">Important Information</h3>
+        <ul class="text-sm text-blue-700 space-y-1">
+            <li>Please arrive 15 minutes before your scheduled time</li>
+            <li>Bring your ID and any previous medical records</li>
+            <li>If you need to cancel, please do so at least 24 hours in advance</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
