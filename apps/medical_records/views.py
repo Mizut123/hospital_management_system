@@ -12,6 +12,7 @@ from django.utils import timezone
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 from django.core.exceptions import PermissionDenied
+from django.db.models import Q
 
 from .models import MedicalRecord, Diagnosis, Prescription, PrescriptionItem, LabTest
 from apps.appointments.models import Appointment
@@ -44,16 +45,35 @@ def my_prescriptions(request):
 
 @login_required
 def doctor_records(request):
-    """View records created by doctor."""
+    """View records for all patients the doctor has ever treated."""
     if not request.user.is_doctor:
         messages.error(request, 'Access denied.')
         return redirect('accounts:dashboard')
 
-    records = MedicalRecord.objects.filter(
-        doctor=request.user
-    ).select_related('patient').prefetch_related('diagnoses')
+    search = request.GET.get('search', '').strip()
 
-    return render(request, 'medical_records/doctor_records.html', {'records': records})
+    # Patients who had any appointment with this doctor
+    patient_ids = Appointment.objects.filter(
+        doctor=request.user
+    ).values_list('patient_id', flat=True).distinct()
+
+    # Records where this doctor created the record OR is any patient of theirs
+    records = MedicalRecord.objects.filter(
+        Q(doctor=request.user) | Q(patient_id__in=patient_ids)
+    ).select_related('patient', 'doctor').prefetch_related('diagnoses').order_by('-visit_date')
+
+    if search:
+        records = records.filter(
+            Q(patient__first_name__icontains=search) |
+            Q(patient__last_name__icontains=search) |
+            Q(patient__email__icontains=search) |
+            Q(chief_complaint__icontains=search)
+        )
+
+    return render(request, 'medical_records/doctor_records.html', {
+        'records': records,
+        'search': search,
+    })
 
 
 class RecordDetailView(LoginRequiredMixin, DetailView):

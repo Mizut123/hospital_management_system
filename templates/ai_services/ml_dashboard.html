@@ -10,7 +10,7 @@
     <div class="flex items-center justify-between">
         <div>
             <h2 class="text-2xl font-bold text-gray-800">ML Model Dashboard</h2>
-            <p class="text-gray-500">Track model accuracy, training data, and version history</p>
+            <p class="text-gray-500">Epidemic surveillance · Model accuracy · Training data</p>
         </div>
         <div class="flex items-center space-x-3">
             <a href="{% url 'ai_services:predict' %}" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm font-medium text-gray-700">
@@ -26,30 +26,111 @@
         </div>
     </div>
 
-    <!-- Stats Cards -->
+    <!-- ═══════════════════════════════════════════════════════════
+         OUTBREAK / EPIDEMIC SURVEILLANCE
+         ═══════════════════════════════════════════════════════════ -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <div class="flex items-center mb-4">
+            <div class="w-9 h-9 rounded-lg bg-red-100 flex items-center justify-center mr-3">
+                <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                </svg>
+            </div>
+            <div>
+                <h3 class="text-lg font-semibold text-gray-800">Epidemic Surveillance  <span class="ml-2 text-xs font-normal text-gray-400">(last 7 days vs. 21-day baseline)</span></h3>
+                <p class="text-sm text-gray-500">Flags diseases whose case count grew ≥ 2× relative to the recent baseline — early warning for mass-infection events.</p>
+            </div>
+        </div>
+
+        {% if outbreak_alerts %}
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mb-6">
+            {% for alert in outbreak_alerts %}
+            <div class="rounded-xl border p-4
+                {% if alert.risk_level == 'critical' %}bg-red-50 border-red-200
+                {% elif alert.risk_level == 'high' %}bg-orange-50 border-orange-200
+                {% else %}bg-yellow-50 border-yellow-200{% endif %}">
+
+                <div class="flex items-start justify-between mb-2">
+                    <p class="font-semibold text-gray-800 text-sm leading-tight">{{ alert.disease }}</p>
+                    <span class="ml-2 px-2 py-0.5 rounded-full text-xs font-bold flex-shrink-0
+                        {% if alert.risk_level == 'critical' %}bg-red-600 text-white
+                        {% elif alert.risk_level == 'high' %}bg-orange-500 text-white
+                        {% else %}bg-yellow-500 text-white{% endif %}">
+                        {{ alert.risk_level|upper }}
+                    </span>
+                </div>
+
+                <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                    <div>
+                        <span class="text-gray-500">Cases (7 days)</span>
+                        <p class="font-bold text-lg
+                            {% if alert.risk_level == 'critical' %}text-red-700
+                            {% elif alert.risk_level == 'high' %}text-orange-700
+                            {% else %}text-yellow-700{% endif %}">
+                            {{ alert.cases_last_7_days }}
+                        </p>
+                    </div>
+                    <div>
+                        <span class="text-gray-500">Baseline avg / 7d</span>
+                        <p class="font-semibold text-gray-700">{{ alert.baseline_avg }}</p>
+                    </div>
+                    <div>
+                        <span class="text-gray-500">Growth rate</span>
+                        <p class="font-semibold text-gray-700">{{ alert.growth_rate }}×</p>
+                    </div>
+                    <div>
+                        <span class="text-gray-500">Projected (14 d)</span>
+                        <p class="font-semibold text-gray-700">~{{ alert.projected_14_days }} cases</p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="flex items-center space-x-3 px-4 py-3 bg-green-50 border border-green-200 rounded-lg mb-6">
+            <svg class="w-5 h-5 text-green-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <p class="text-sm text-green-700 font-medium">No outbreak signals detected. All disease patterns are within normal baseline ranges.</p>
+        </div>
+        {% endif %}
+
+        <!-- Disease Trend Chart (30 days) -->
+        <div>
+            <h4 class="text-sm font-semibold text-gray-700 mb-1">Disease Trend — Last 30 Days</h4>
+            <p class="text-xs text-gray-400 mb-3">Daily confirmed diagnosis counts for the top 5 diseases. Rising lines indicate potential emerging threats.</p>
+            <canvas id="diseaseTrendChart" height="140"></canvas>
+            <div id="trendEmpty" class="hidden flex items-center justify-center h-32 text-gray-400 text-sm">
+                No diagnosis data for the selected period.
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         MODEL STATS CARDS
+         ═══════════════════════════════════════════════════════════ -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <!-- Active Model -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
             <div class="flex items-center justify-between mb-3">
                 <span class="text-sm font-medium text-gray-500">Active Model</span>
-                {% if active_model %}
-                <span class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></span>
-                {% else %}
-                <span class="w-3 h-3 bg-yellow-500 rounded-full"></span>
-                {% endif %}
+                {% if active_model %}<span class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></span>
+                {% else %}<span class="w-3 h-3 bg-yellow-500 rounded-full"></span>{% endif %}
             </div>
             <p class="text-2xl font-bold text-gray-800">{{ active_model.version|default:"None" }}</p>
             {% if active_model %}
-            <p class="text-sm text-gray-500 mt-1">{{ active_model.num_classes }} diseases | {{ active_model.feature_count }} features</p>
+            <p class="text-sm text-gray-500 mt-1">{{ active_model.num_classes }} diseases · {{ active_model.feature_count }} features</p>
             {% else %}
             <p class="text-sm text-yellow-600 mt-1">No model trained yet</p>
             {% endif %}
         </div>
 
-        <!-- Model Accuracy -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
             <span class="text-sm font-medium text-gray-500">Model Accuracy</span>
-            <p class="text-2xl font-bold mt-3 {% if active_model.accuracy >= 0.7 %}text-green-600{% elif active_model.accuracy >= 0.5 %}text-yellow-600{% else %}text-gray-800{% endif %}">
+            <p class="text-2xl font-bold mt-3
+               {% if active_model.accuracy >= 0.7 %}text-green-600
+               {% elif active_model.accuracy >= 0.5 %}text-yellow-600
+               {% else %}text-gray-800{% endif %}">
                 {% if active_model %}{{ active_model.accuracy|floatformat:1 }}%{% else %}--{% endif %}
             </p>
             {% if active_model %}
@@ -57,7 +138,6 @@
             {% endif %}
         </div>
 
-        <!-- Training Data -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
             <span class="text-sm font-medium text-gray-500">Training Samples</span>
             <p class="text-2xl font-bold text-gray-800 mt-3">{{ total_training }}</p>
@@ -67,7 +147,6 @@
             </div>
         </div>
 
-        <!-- Prediction Accuracy -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
             <span class="text-sm font-medium text-gray-500">Prediction Accuracy</span>
             <p class="text-2xl font-bold text-gray-800 mt-3">{{ prediction_accuracy }}%</p>
@@ -75,104 +154,108 @@
         </div>
     </div>
 
+    <!-- ═══════════════════════════════════════════════════════════
+         ACCURACY OVER TIME + DISEASE DISTRIBUTION
+         ═══════════════════════════════════════════════════════════ -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <!-- Accuracy Over Time Chart -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-            <h3 class="text-lg font-semibold text-gray-800 mb-4">Model Accuracy Over Time</h3>
+            <h3 class="text-base font-semibold text-gray-800 mb-1">Model Accuracy Over Time</h3>
+            <p class="text-xs text-gray-400 mb-4">Accuracy (%) and training sample count per model version</p>
             <canvas id="accuracyChart" height="250"></canvas>
             {% if not model_versions %}
-            <div class="flex items-center justify-center h-48 text-gray-400">
-                <p>No model versions yet. Train your first model to see accuracy trends.</p>
-            </div>
+            <div class="flex items-center justify-center h-48 text-gray-400 text-sm">No model versions yet. Train your first model.</div>
             {% endif %}
         </div>
 
-        <!-- Disease Distribution -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-            <h3 class="text-lg font-semibold text-gray-800 mb-4">Disease Distribution in Training Data</h3>
+            <h3 class="text-base font-semibold text-gray-800 mb-1">Disease Distribution in Training Data</h3>
+            <p class="text-xs text-gray-400 mb-4">Proportion of each disease class in the confirmed diagnoses dataset</p>
             <canvas id="diseaseChart" height="250"></canvas>
             {% if not disease_distribution %}
-            <div class="flex items-center justify-center h-48 text-gray-400">
-                <p>No training data yet. Confirm diagnoses to build the dataset.</p>
-            </div>
+            <div class="flex items-center justify-center h-48 text-gray-400 text-sm">No training data yet. Confirm diagnoses to build the dataset.</div>
             {% endif %}
         </div>
     </div>
 
-    <!-- ML Evaluation Charts (Active Model) -->
+    <!-- ═══════════════════════════════════════════════════════════
+         FEATURE IMPORTANCE + PER-CLASS METRICS (active model only)
+         ═══════════════════════════════════════════════════════════ -->
     {% if active_model %}
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <!-- Feature Importance -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-            <h3 class="text-lg font-semibold text-gray-800 mb-1">Feature Importance (Random Forest)</h3>
-            <p class="text-xs text-gray-400 mb-4">Top 20 features ranked by Gini importance - {{ active_model.version }}</p>
+            <h3 class="text-base font-semibold text-gray-800 mb-1">Feature Importance (Random Forest)</h3>
+            <p class="text-xs text-gray-400 mb-4">Top 20 symptoms/features ranked by Gini importance — {{ active_model.version }}</p>
             <canvas id="featureImportanceChart" height="300"></canvas>
         </div>
 
-        <!-- Per-Class Precision / Recall / F1 -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-            <h3 class="text-lg font-semibold text-gray-800 mb-1">Per-Class Metrics</h3>
-            <p class="text-xs text-gray-400 mb-4">Precision, Recall, and F1-Score per disease class - {{ active_model.version }}</p>
+            <h3 class="text-base font-semibold text-gray-800 mb-1">Per-Class Metrics</h3>
+            <p class="text-xs text-gray-400 mb-4">Precision, Recall, and F1-Score per disease class — {{ active_model.version }}</p>
             <canvas id="perClassChart" height="300"></canvas>
         </div>
     </div>
 
-    <!-- Confusion Matrix Heatmap -->
+    <!-- Confusion Matrix -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-        <h3 class="text-lg font-semibold text-gray-800 mb-1">Confusion Matrix Heatmap</h3>
-        <p class="text-xs text-gray-400 mb-4">Predicted vs Actual disease classification on test set - {{ active_model.version }}</p>
+        <h3 class="text-base font-semibold text-gray-800 mb-1">Confusion Matrix</h3>
+        <p class="text-xs text-gray-400 mb-4">
+            Predicted vs Actual disease on the test set — <span class="text-green-600 font-medium">green diagonal = correct</span>,
+            <span class="text-red-600 font-medium">red off-diagonal = misclassified</span> — {{ active_model.version }}
+        </p>
         <div class="overflow-x-auto">
             <canvas id="confusionMatrixChart"></canvas>
         </div>
     </div>
 
-    <!-- Per-Class Metrics Table -->
+    <!-- Classification Report Table -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-        <h3 class="text-lg font-semibold text-gray-800 mb-4">Classification Report</h3>
+        <h3 class="text-base font-semibold text-gray-800 mb-4">Classification Report</h3>
+        <p class="text-xs text-gray-400 mb-4">
+            <span class="text-green-600 font-semibold">≥ 80%</span> = good &nbsp;·&nbsp;
+            <span class="text-yellow-600 font-semibold">50–79%</span> = fair &nbsp;·&nbsp;
+            <span class="text-red-600 font-semibold">&lt; 50%</span> = needs more training data
+        </p>
         <div class="overflow-x-auto" id="classificationReportTable"></div>
     </div>
     {% endif %}
 
-    <!-- Retrain Progress Bar -->
+    <!-- Auto-retrain Progress -->
     {% if total_training > 0 %}
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
         <div class="flex items-center justify-between mb-2">
-            <h3 class="text-sm font-semibold text-gray-700">Next Auto-Retrain Progress</h3>
+            <h3 class="text-sm font-semibold text-gray-700">Auto-Retrain Progress</h3>
             <span class="text-sm text-gray-500">{{ pending_training }} / {{ retrain_threshold }} new samples</span>
         </div>
-        <div class="h-4 bg-gray-200 rounded-full overflow-hidden">
-            {% widthratio pending_training retrain_threshold 100 as progress %}
+        <div class="h-3 bg-gray-200 rounded-full overflow-hidden">
             <div class="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all duration-500"
                  style="width: {% widthratio pending_training retrain_threshold 100 %}%"></div>
         </div>
-        <p class="text-xs text-gray-400 mt-2">
-            The model automatically retrains after {{ retrain_threshold }} new confirmed diagnoses are collected.
-        </p>
+        <p class="text-xs text-gray-400 mt-2">Model auto-retrains after {{ retrain_threshold }} new confirmed diagnoses.</p>
     </div>
     {% endif %}
 
     <!-- Model Version History -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-        <h3 class="text-lg font-semibold text-gray-800 mb-4">Model Version History</h3>
+        <h3 class="text-base font-semibold text-gray-800 mb-4">Model Version History</h3>
         {% if model_versions %}
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
                 <thead>
-                    <tr class="bg-gray-50">
-                        <th class="px-4 py-3 text-left font-semibold text-gray-600">Version</th>
-                        <th class="px-4 py-3 text-left font-semibold text-gray-600">Accuracy</th>
-                        <th class="px-4 py-3 text-left font-semibold text-gray-600">Precision</th>
-                        <th class="px-4 py-3 text-left font-semibold text-gray-600">Recall</th>
-                        <th class="px-4 py-3 text-left font-semibold text-gray-600">F1 Score</th>
-                        <th class="px-4 py-3 text-left font-semibold text-gray-600">Samples</th>
-                        <th class="px-4 py-3 text-left font-semibold text-gray-600">Classes</th>
-                        <th class="px-4 py-3 text-left font-semibold text-gray-600">Trained</th>
-                        <th class="px-4 py-3 text-left font-semibold text-gray-600">Status</th>
+                    <tr class="bg-gray-50 text-left">
+                        <th class="px-4 py-3 font-semibold text-gray-600">Version</th>
+                        <th class="px-4 py-3 font-semibold text-gray-600">Accuracy</th>
+                        <th class="px-4 py-3 font-semibold text-gray-600">Precision</th>
+                        <th class="px-4 py-3 font-semibold text-gray-600">Recall</th>
+                        <th class="px-4 py-3 font-semibold text-gray-600">F1</th>
+                        <th class="px-4 py-3 font-semibold text-gray-600">Samples</th>
+                        <th class="px-4 py-3 font-semibold text-gray-600">Classes</th>
+                        <th class="px-4 py-3 font-semibold text-gray-600">Trained</th>
+                        <th class="px-4 py-3 font-semibold text-gray-600">Status</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
                     {% for v in model_versions %}
-                    <tr class="{% if v.is_active %}bg-green-50{% endif %}">
+                    <tr class="{% if v.is_active %}bg-green-50{% endif %} hover:bg-gray-50">
                         <td class="px-4 py-3 font-medium text-gray-800">{{ v.version }}</td>
                         <td class="px-4 py-3">
                             <span class="font-semibold {% if v.accuracy >= 0.7 %}text-green-600{% elif v.accuracy >= 0.5 %}text-yellow-600{% else %}text-red-600{% endif %}">
@@ -210,36 +293,48 @@
     <!-- Recent Predictions -->
     {% if recent_predictions %}
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-        <h3 class="text-lg font-semibold text-gray-800 mb-4">Recent Predictions</h3>
+        <h3 class="text-base font-semibold text-gray-800 mb-4">Recent Predictions</h3>
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
                 <thead>
-                    <tr class="bg-gray-50">
-                        <th class="px-4 py-3 text-left font-semibold text-gray-600">Date</th>
-                        <th class="px-4 py-3 text-left font-semibold text-gray-600">Symptoms</th>
-                        <th class="px-4 py-3 text-left font-semibold text-gray-600">Prediction</th>
-                        <th class="px-4 py-3 text-left font-semibold text-gray-600">Confidence</th>
-                        <th class="px-4 py-3 text-left font-semibold text-gray-600">Model</th>
-                        <th class="px-4 py-3 text-left font-semibold text-gray-600">Feedback</th>
+                    <tr class="bg-gray-50 text-left">
+                        <th class="px-4 py-3 font-semibold text-gray-600">Date</th>
+                        <th class="px-4 py-3 font-semibold text-gray-600">Symptoms (summary)</th>
+                        <th class="px-4 py-3 font-semibold text-gray-600">Top Prediction</th>
+                        <th class="px-4 py-3 font-semibold text-gray-600">Confidence</th>
+                        <th class="px-4 py-3 font-semibold text-gray-600">Model</th>
+                        <th class="px-4 py-3 font-semibold text-gray-600">Feedback</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
                     {% for pred in recent_predictions %}
-                    <tr>
-                        <td class="px-4 py-3 text-gray-500 text-xs">{{ pred.created_at|date:"M d, H:i" }}</td>
-                        <td class="px-4 py-3 text-gray-600" style="max-width: 200px;">
-                            <span class="truncate block">{{ pred.symptoms_input|truncatewords:8 }}</span>
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-3 text-gray-500 text-xs whitespace-nowrap">{{ pred.created_at|date:"M d, H:i" }}</td>
+                        <td class="px-4 py-3 text-gray-600 max-w-xs">
+                            <span class="block truncate">{{ pred.symptoms_input|truncatewords:8 }}</span>
                         </td>
                         <td class="px-4 py-3 font-medium text-gray-800">{{ pred.prediction_1 }}</td>
                         <td class="px-4 py-3">
-                            <span class="font-semibold {% if pred.confidence_1 >= 0.7 %}text-green-600{% elif pred.confidence_1 >= 0.4 %}text-yellow-600{% else %}text-gray-600{% endif %}">
-                                {{ pred.confidence_1|floatformat:0 }}%
-                            </span>
+                            <div class="flex items-center space-x-2">
+                                <div class="w-16 h-2 bg-gray-100 rounded-full overflow-hidden">
+                                    <div class="h-full rounded-full
+                                        {% if pred.confidence_1 >= 0.7 %}bg-green-500
+                                        {% elif pred.confidence_1 >= 0.4 %}bg-yellow-500
+                                        {% else %}bg-red-400{% endif %}"
+                                         style="width: {{ pred.confidence_1|floatformat:0 }}%"></div>
+                                </div>
+                                <span class="text-xs font-semibold
+                                    {% if pred.confidence_1 >= 0.7 %}text-green-600
+                                    {% elif pred.confidence_1 >= 0.4 %}text-yellow-600
+                                    {% else %}text-gray-500{% endif %}">
+                                    {{ pred.confidence_1|floatformat:0 }}%
+                                </span>
+                            </div>
                         </td>
-                        <td class="px-4 py-3 text-gray-500">{{ pred.model_version.version|default:"--" }}</td>
+                        <td class="px-4 py-3 text-gray-500 text-xs">{{ pred.model_version.version|default:"--" }}</td>
                         <td class="px-4 py-3">
                             {% if pred.feedback_received %}
-                            <span class="px-2 py-1 bg-green-100 text-green-700 rounded text-xs">Confirmed</span>
+                            <span class="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-medium">Confirmed</span>
                             {% else %}
                             <span class="px-2 py-1 bg-gray-100 text-gray-500 rounded text-xs">Pending</span>
                             {% endif %}
@@ -251,169 +346,142 @@
         </div>
     </div>
     {% endif %}
-</div>
+
+</div><!-- end space-y-6 -->
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const colors = ['#3B82F6','#EF4444','#10B981','#F59E0B','#6366F1','#EC4899','#14B8A6','#F97316','#8B5CF6','#06B6D4','#84CC16','#E11D48','#0EA5E9','#D946EF','#22C55E','#A855F7','#F43F5E','#0891B2','#65A30D','#DC2626'];
+document.addEventListener('DOMContentLoaded', function () {
 
-    // =============================================
-    // 1. Accuracy Over Time (Line Chart)
-    // =============================================
+    // Shared chart defaults
+    Chart.defaults.font.family = "'Inter','Helvetica Neue',sans-serif";
+    Chart.defaults.color = '#6B7280';
+
+    const COLORS = ['#3B82F6','#EF4444','#10B981','#F59E0B','#6366F1',
+                    '#EC4899','#14B8A6','#F97316','#8B5CF6','#06B6D4',
+                    '#84CC16','#E11D48','#0EA5E9','#D946EF','#22C55E',
+                    '#A855F7','#F43F5E','#0891B2','#65A30D','#DC2626'];
+
+    // ─────────────────────────────────────────────────────
+    // 1. Disease Trend (30-day multi-line – Outbreak section)
+    // ─────────────────────────────────────────────────────
+    const trendRaw = {{ disease_trend_js|safe }};
+    if (trendRaw.datasets && trendRaw.datasets.length > 0) {
+        new Chart(document.getElementById('diseaseTrendChart').getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: trendRaw.labels.map(l => {
+                    const d = new Date(l);
+                    return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+                }),
+                datasets: trendRaw.datasets,
+            },
+            options: {
+                responsive: true,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { position: 'bottom', labels: { boxWidth: 12, padding: 16 } },
+                    tooltip: {
+                        callbacks: {
+                            title: (items) => 'Date: ' + items[0].label,
+                            label:  (ctx)   => ` ${ctx.dataset.label}: ${ctx.raw} case${ctx.raw !== 1 ? 's' : ''}`,
+                        }
+                    }
+                },
+                scales: {
+                    x: { grid: { color: 'rgba(0,0,0,0.04)' },
+                         ticks: { maxTicksLimit: 10, font: { size: 11 } } },
+                    y: { beginAtZero: true,
+                         title: { display: true, text: 'Confirmed diagnoses' },
+                         ticks: { stepSize: 1, precision: 0 },
+                         grid: { color: 'rgba(0,0,0,0.06)' } }
+                }
+            }
+        });
+    } else {
+        document.getElementById('trendEmpty').classList.remove('hidden');
+        document.getElementById('diseaseTrendChart').classList.add('hidden');
+    }
+
+    // ─────────────────────────────────────────────────────
+    // 2. Model Accuracy Over Time (Line)
+    // ─────────────────────────────────────────────────────
     const accuracyData = {{ accuracy_history|safe }};
     if (accuracyData.length > 0) {
         new Chart(document.getElementById('accuracyChart').getContext('2d'), {
             type: 'line',
             data: {
                 labels: accuracyData.map(d => d.version),
-                datasets: [{
-                    label: 'Accuracy (%)',
-                    data: accuracyData.map(d => d.accuracy_pct),
-                    borderColor: '#7C3AED',
-                    backgroundColor: 'rgba(124, 58, 237, 0.1)',
-                    fill: true,
-                    tension: 0.3,
-                    pointBackgroundColor: '#7C3AED',
-                    pointRadius: 6,
-                    pointHoverRadius: 8,
-                }, {
-                    label: 'Training Samples',
-                    data: accuracyData.map(d => d.training_samples),
-                    borderColor: '#10B981',
-                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                    fill: false,
-                    tension: 0.3,
-                    yAxisID: 'y1',
-                    pointBackgroundColor: '#10B981',
-                    pointRadius: 4,
-                }]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: { beginAtZero: false, min: 0, max: 100, title: { display: true, text: 'Accuracy (%)' } },
-                    y1: { position: 'right', beginAtZero: true, title: { display: true, text: 'Samples' }, grid: { drawOnChartArea: false } }
-                },
-                plugins: { legend: { position: 'bottom' } }
-            }
-        });
-    }
-
-    // =============================================
-    // 2. Disease Distribution (Doughnut Chart)
-    // =============================================
-    const diseaseData = {{ disease_distribution|safe }};
-    if (diseaseData.length > 0) {
-        new Chart(document.getElementById('diseaseChart').getContext('2d'), {
-            type: 'doughnut',
-            data: {
-                labels: diseaseData.map(d => d.confirmed_disease),
-                datasets: [{ data: diseaseData.map(d => d.count), backgroundColor: colors.slice(0, diseaseData.length) }]
-            },
-            options: {
-                responsive: true,
-                plugins: { legend: { position: 'right', labels: { boxWidth: 12, font: { size: 11 } } } }
-            }
-        });
-    }
-
-    // =============================================
-    // 3. Feature Importance (Horizontal Bar Chart)
-    // =============================================
-    const featureData = {{ feature_importances_data|safe }};
-    if (featureData && featureData.length > 0) {
-        const sortedFeatures = featureData.sort((a, b) => a.importance - b.importance);
-        new Chart(document.getElementById('featureImportanceChart').getContext('2d'), {
-            type: 'bar',
-            data: {
-                labels: sortedFeatures.map(d => d.feature.replace(/_/g, ' ')),
-                datasets: [{
-                    label: 'Gini Importance',
-                    data: sortedFeatures.map(d => d.importance),
-                    backgroundColor: sortedFeatures.map((d, i) => {
-                        const ratio = i / sortedFeatures.length;
-                        return `rgba(124, 58, 237, ${0.3 + ratio * 0.7})`;
-                    }),
-                    borderColor: '#7C3AED',
-                    borderWidth: 1,
-                }]
-            },
-            options: {
-                indexAxis: 'y',
-                responsive: true,
-                scales: {
-                    x: {
-                        beginAtZero: true,
-                        title: { display: true, text: 'Importance Score' }
-                    },
-                    y: {
-                        ticks: { font: { size: 10 } }
-                    }
-                },
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        callbacks: {
-                            label: (ctx) => `Importance: ${(ctx.raw * 100).toFixed(2)}%`
-                        }
-                    }
-                }
-            }
-        });
-    }
-
-    // =============================================
-    // 4. Per-Class Precision / Recall / F1 (Grouped Bar)
-    // =============================================
-    const perClassData = {{ per_class_metrics_data|safe }};
-    if (perClassData && perClassData.length > 0) {
-        new Chart(document.getElementById('perClassChart').getContext('2d'), {
-            type: 'bar',
-            data: {
-                labels: perClassData.map(d => d.class.length > 18 ? d.class.substring(0, 18) + '...' : d.class),
                 datasets: [
                     {
-                        label: 'Precision',
-                        data: perClassData.map(d => d.precision),
-                        backgroundColor: 'rgba(59, 130, 246, 0.8)',
-                        borderColor: '#3B82F6',
-                        borderWidth: 1,
+                        label: 'Accuracy (%)',
+                        data: accuracyData.map(d => d.accuracy_pct),
+                        borderColor: '#7C3AED',
+                        backgroundColor: 'rgba(124,58,237,0.08)',
+                        fill: true, tension: 0.3,
+                        pointBackgroundColor: '#7C3AED', pointRadius: 6, pointHoverRadius: 8,
                     },
                     {
-                        label: 'Recall',
-                        data: perClassData.map(d => d.recall),
-                        backgroundColor: 'rgba(16, 185, 129, 0.8)',
+                        label: 'Training Samples',
+                        data: accuracyData.map(d => d.training_samples),
                         borderColor: '#10B981',
-                        borderWidth: 1,
-                    },
-                    {
-                        label: 'F1-Score',
-                        data: perClassData.map(d => d.f1),
-                        backgroundColor: 'rgba(245, 158, 11, 0.8)',
-                        borderColor: '#F59E0B',
-                        borderWidth: 1,
+                        backgroundColor: 'rgba(16,185,129,0.08)',
+                        fill: false, tension: 0.3, yAxisID: 'y1',
+                        pointBackgroundColor: '#10B981', pointRadius: 4,
                     }
                 ]
             },
             options: {
                 responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: 1.0,
-                        title: { display: true, text: 'Score' },
-                        ticks: { callback: (v) => (v * 100).toFixed(0) + '%' }
-                    },
-                    x: {
-                        ticks: { font: { size: 9 }, maxRotation: 45, minRotation: 45 }
-                    }
-                },
+                interaction: { mode: 'index', intersect: false },
                 plugins: {
                     legend: { position: 'bottom' },
                     tooltip: {
                         callbacks: {
-                            label: (ctx) => `${ctx.dataset.label}: ${(ctx.raw * 100).toFixed(1)}%`
+                            label: (ctx) => ctx.datasetIndex === 0
+                                ? ` Accuracy: ${ctx.raw}%`
+                                : ` Samples: ${ctx.raw}`,
+                        }
+                    }
+                },
+                scales: {
+                    y:  { beginAtZero: false, min: 0, max: 100,
+                          title: { display: true, text: 'Accuracy (%)' },
+                          grid: { color: 'rgba(0,0,0,0.05)' } },
+                    y1: { position: 'right', beginAtZero: true,
+                          title: { display: true, text: 'Samples' },
+                          grid: { drawOnChartArea: false } }
+                }
+            }
+        });
+    }
+
+    // ─────────────────────────────────────────────────────
+    // 3. Disease Distribution (Doughnut)
+    // ─────────────────────────────────────────────────────
+    const diseaseData = {{ disease_distribution|safe }};
+    if (diseaseData.length > 0) {
+        const total = diseaseData.reduce((s, d) => s + d.count, 0);
+        new Chart(document.getElementById('diseaseChart').getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels: diseaseData.map(d => d.confirmed_disease),
+                datasets: [{
+                    data: diseaseData.map(d => d.count),
+                    backgroundColor: COLORS.slice(0, diseaseData.length),
+                    borderWidth: 2, borderColor: '#fff',
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'right', labels: { boxWidth: 12, font: { size: 11 } } },
+                    tooltip: {
+                        callbacks: {
+                            label: (ctx) => {
+                                const pct = ((ctx.raw / total) * 100).toFixed(1);
+                                return ` ${ctx.label}: ${ctx.raw} cases (${pct}%)`;
+                            }
                         }
                     }
                 }
@@ -421,153 +489,203 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // =============================================
-    // 5. Confusion Matrix Heatmap (Canvas-based)
-    // =============================================
-    const cmData = {{ confusion_matrix_data|safe }};
+    // ─────────────────────────────────────────────────────
+    // 4. Feature Importance (Horizontal Bar)
+    // ─────────────────────────────────────────────────────
+    const featureData = {{ feature_importances_data|safe }};
+    if (featureData && featureData.length > 0) {
+        const sorted = [...featureData].sort((a, b) => a.importance - b.importance);
+        new Chart(document.getElementById('featureImportanceChart').getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: sorted.map(d => d.feature.replace(/_/g, ' ')),
+                datasets: [{
+                    label: 'Gini Importance',
+                    data:  sorted.map(d => d.importance),
+                    backgroundColor: sorted.map((_, i) => `rgba(124,58,237,${0.25 + (i / sorted.length) * 0.75})`),
+                    borderColor: '#7C3AED', borderWidth: 1,
+                }]
+            },
+            options: {
+                indexAxis: 'y', responsive: true,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: (ctx) => ` Importance: ${(ctx.raw * 100).toFixed(2)}%  (higher = more predictive)`
+                        }
+                    }
+                },
+                scales: {
+                    x: { beginAtZero: true, title: { display: true, text: 'Gini Importance Score' },
+                         grid: { color: 'rgba(0,0,0,0.05)' } },
+                    y: { ticks: { font: { size: 10 } } }
+                }
+            }
+        });
+    }
+
+    // ─────────────────────────────────────────────────────
+    // 5. Per-Class Precision / Recall / F1 (Grouped Bar)
+    // ─────────────────────────────────────────────────────
+    const perClassData = {{ per_class_metrics_data|safe }};
+    if (perClassData && perClassData.length > 0) {
+        new Chart(document.getElementById('perClassChart').getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: perClassData.map(d => d.class.length > 18 ? d.class.substring(0, 18) + '…' : d.class),
+                datasets: [
+                    { label: 'Precision', data: perClassData.map(d => d.precision),
+                      backgroundColor: 'rgba(59,130,246,0.8)', borderColor: '#3B82F6', borderWidth: 1 },
+                    { label: 'Recall',    data: perClassData.map(d => d.recall),
+                      backgroundColor: 'rgba(16,185,129,0.8)', borderColor: '#10B981', borderWidth: 1 },
+                    { label: 'F1-Score', data: perClassData.map(d => d.f1),
+                      backgroundColor: 'rgba(245,158,11,0.8)', borderColor: '#F59E0B', borderWidth: 1 },
+                ]
+            },
+            options: {
+                responsive: true,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { position: 'bottom' },
+                    tooltip: {
+                        callbacks: {
+                            label: (ctx) => ` ${ctx.dataset.label}: ${(ctx.raw * 100).toFixed(1)}%`
+                        }
+                    }
+                },
+                scales: {
+                    y: { beginAtZero: true, max: 1,
+                         title: { display: true, text: 'Score (0–100%)' },
+                         ticks: { callback: v => (v * 100).toFixed(0) + '%' },
+                         grid: { color: 'rgba(0,0,0,0.05)' } },
+                    x: { ticks: { font: { size: 9 }, maxRotation: 45, minRotation: 45 } }
+                }
+            }
+        });
+    }
+
+    // ─────────────────────────────────────────────────────
+    // 6. Confusion Matrix Heatmap (Canvas)
+    // ─────────────────────────────────────────────────────
+    const cmData     = {{ confusion_matrix_data|safe }};
     const classLabels = {{ class_labels_data|safe }};
 
     if (cmData && cmData.length > 0 && classLabels && classLabels.length > 0) {
         const canvas = document.getElementById('confusionMatrixChart');
         const n = classLabels.length;
-        const cellSize = Math.max(35, Math.min(55, 700 / n));
-        const labelWidth = 130;
-        const topLabelHeight = 100;
-        const padding = 20;
+        const cellSize     = Math.max(35, Math.min(55, 700 / n));
+        const labelWidth   = 135;
+        const topHeight    = 110;
+        const pad          = 24;
 
-        canvas.width = labelWidth + n * cellSize + padding + 60;
-        canvas.height = topLabelHeight + n * cellSize + padding;
+        canvas.width  = labelWidth + n * cellSize + pad + 65;
+        canvas.height = topHeight  + n * cellSize + pad;
 
         const ctx = canvas.getContext('2d');
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Find max value for color scaling
         let maxVal = 0;
-        for (let i = 0; i < n; i++) {
-            for (let j = 0; j < n; j++) {
-                if (cmData[i][j] > maxVal) maxVal = cmData[i][j];
-            }
-        }
+        for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) if (cmData[i][j] > maxVal) maxVal = cmData[i][j];
         if (maxVal === 0) maxVal = 1;
 
-        // Draw cells
         for (let i = 0; i < n; i++) {
             for (let j = 0; j < n; j++) {
-                const x = labelWidth + j * cellSize;
-                const y = topLabelHeight + i * cellSize;
+                const x   = labelWidth + j * cellSize;
+                const y   = topHeight  + i * cellSize;
                 const val = cmData[i][j];
-                const intensity = val / maxVal;
+                const k   = val / maxVal;
 
-                // Color: diagonal = green shades, off-diagonal = red shades
-                if (i === j) {
-                    ctx.fillStyle = `rgba(16, 185, 129, ${0.15 + intensity * 0.85})`;
-                } else {
-                    ctx.fillStyle = val > 0 ? `rgba(239, 68, 68, ${0.15 + intensity * 0.85})` : 'rgba(243, 244, 246, 0.5)';
-                }
-
+                ctx.fillStyle = i === j
+                    ? `rgba(16,185,129,${0.12 + k * 0.88})`
+                    : val > 0 ? `rgba(239,68,68,${0.12 + k * 0.88})` : 'rgba(243,244,246,0.5)';
                 ctx.fillRect(x, y, cellSize - 1, cellSize - 1);
 
-                // Cell border
-                ctx.strokeStyle = '#e5e7eb';
-                ctx.lineWidth = 0.5;
+                ctx.strokeStyle = '#e5e7eb'; ctx.lineWidth = 0.5;
                 ctx.strokeRect(x, y, cellSize - 1, cellSize - 1);
 
-                // Value text
                 if (val > 0) {
-                    ctx.fillStyle = intensity > 0.6 ? '#ffffff' : '#374151';
+                    ctx.fillStyle = k > 0.55 ? '#ffffff' : '#374151';
                     ctx.font = `bold ${Math.max(10, cellSize / 3.5)}px sans-serif`;
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
+                    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
                     ctx.fillText(val, x + cellSize / 2 - 0.5, y + cellSize / 2);
                 }
             }
         }
 
-        // Y-axis labels (Actual)
+        // Y labels (Actual)
         ctx.fillStyle = '#374151';
         ctx.font = `${Math.max(8, cellSize / 4.5)}px sans-serif`;
-        ctx.textAlign = 'right';
-        ctx.textBaseline = 'middle';
+        ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
         for (let i = 0; i < n; i++) {
-            const label = classLabels[i].length > 18 ? classLabels[i].substring(0, 18) + '..' : classLabels[i];
-            ctx.fillText(label, labelWidth - 6, topLabelHeight + i * cellSize + cellSize / 2);
+            const lbl = classLabels[i].length > 18 ? classLabels[i].substring(0, 18) + '..' : classLabels[i];
+            ctx.fillText(lbl, labelWidth - 6, topHeight + i * cellSize + cellSize / 2);
         }
 
-        // X-axis labels (Predicted) - rotated
-        ctx.save();
+        // X labels (Predicted) – rotated
         ctx.font = `${Math.max(8, cellSize / 4.5)}px sans-serif`;
         ctx.textAlign = 'right';
         for (let j = 0; j < n; j++) {
             const x = labelWidth + j * cellSize + cellSize / 2;
-            const y = topLabelHeight - 6;
             ctx.save();
-            ctx.translate(x, y);
+            ctx.translate(x, topHeight - 6);
             ctx.rotate(-Math.PI / 3);
-            const label = classLabels[j].length > 18 ? classLabels[j].substring(0, 18) + '..' : classLabels[j];
+            const lbl = classLabels[j].length > 18 ? classLabels[j].substring(0, 18) + '..' : classLabels[j];
             ctx.fillStyle = '#374151';
-            ctx.fillText(label, 0, 0);
+            ctx.fillText(lbl, 0, 0);
             ctx.restore();
         }
-        ctx.restore();
 
         // Axis titles
-        ctx.fillStyle = '#6B7280';
-        ctx.font = 'bold 12px sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText('Predicted Label', labelWidth + (n * cellSize) / 2, topLabelHeight + n * cellSize + padding - 2);
-
+        ctx.fillStyle = '#6B7280'; ctx.font = 'bold 12px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText('Predicted Label', labelWidth + (n * cellSize) / 2, topHeight + n * cellSize + pad - 2);
         ctx.save();
-        ctx.translate(14, topLabelHeight + (n * cellSize) / 2);
+        ctx.translate(14, topHeight + (n * cellSize) / 2);
         ctx.rotate(-Math.PI / 2);
         ctx.fillText('Actual Label', 0, 0);
         ctx.restore();
 
-        // Color legend
-        const legendX = labelWidth + n * cellSize + 15;
-        const legendH = Math.min(n * cellSize, 150);
-        const legendY = topLabelHeight + (n * cellSize - legendH) / 2;
-        const gradient = ctx.createLinearGradient(0, legendY + legendH, 0, legendY);
-        gradient.addColorStop(0, 'rgba(16, 185, 129, 0.15)');
-        gradient.addColorStop(1, 'rgba(16, 185, 129, 1)');
-        ctx.fillStyle = gradient;
-        ctx.fillRect(legendX, legendY, 15, legendH);
-        ctx.strokeStyle = '#d1d5db';
-        ctx.strokeRect(legendX, legendY, 15, legendH);
-        ctx.fillStyle = '#6B7280';
-        ctx.font = '9px sans-serif';
-        ctx.textAlign = 'left';
-        ctx.fillText(maxVal, legendX + 20, legendY + 5);
-        ctx.fillText('0', legendX + 20, legendY + legendH);
+        // Colour legend
+        const lx = labelWidth + n * cellSize + 18;
+        const lh = Math.min(n * cellSize, 150);
+        const ly = topHeight + (n * cellSize - lh) / 2;
+        const gr = ctx.createLinearGradient(0, ly + lh, 0, ly);
+        gr.addColorStop(0, 'rgba(16,185,129,0.12)');
+        gr.addColorStop(1, 'rgba(16,185,129,1)');
+        ctx.fillStyle = gr;
+        ctx.fillRect(lx, ly, 15, lh);
+        ctx.strokeStyle = '#d1d5db'; ctx.lineWidth = 1; ctx.strokeRect(lx, ly, 15, lh);
+        ctx.fillStyle = '#6B7280'; ctx.font = '9px sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(maxVal, lx + 20, ly + 4);
+        ctx.fillText('0', lx + 20, ly + lh);
     }
 
-    // =============================================
-    // 6. Classification Report Table
-    // =============================================
+    // ─────────────────────────────────────────────────────
+    // 7. Classification Report Table
+    // ─────────────────────────────────────────────────────
     if (perClassData && perClassData.length > 0) {
-        const tableDiv = document.getElementById('classificationReportTable');
-        let html = '<table class="w-full text-sm"><thead><tr class="bg-gray-50">';
-        html += '<th class="px-4 py-3 text-left font-semibold text-gray-600">Disease Class</th>';
-        html += '<th class="px-4 py-3 text-center font-semibold text-gray-600">Precision</th>';
-        html += '<th class="px-4 py-3 text-center font-semibold text-gray-600">Recall</th>';
-        html += '<th class="px-4 py-3 text-center font-semibold text-gray-600">F1-Score</th>';
-        html += '<th class="px-4 py-3 text-center font-semibold text-gray-600">Support</th>';
-        html += '</tr></thead><tbody class="divide-y divide-gray-100">';
+        const div = document.getElementById('classificationReportTable');
+        let html = `<table class="w-full text-sm">
+            <thead><tr class="bg-gray-50">
+                <th class="px-4 py-3 text-left font-semibold text-gray-600">Disease Class</th>
+                <th class="px-4 py-3 text-center font-semibold text-gray-600">Precision</th>
+                <th class="px-4 py-3 text-center font-semibold text-gray-600">Recall</th>
+                <th class="px-4 py-3 text-center font-semibold text-gray-600">F1-Score</th>
+                <th class="px-4 py-3 text-center font-semibold text-gray-600">Support</th>
+            </tr></thead><tbody class="divide-y divide-gray-100">`;
 
         perClassData.forEach(d => {
-            const pColor = d.precision >= 0.8 ? 'text-green-600' : d.precision >= 0.5 ? 'text-yellow-600' : 'text-red-600';
-            const rColor = d.recall >= 0.8 ? 'text-green-600' : d.recall >= 0.5 ? 'text-yellow-600' : 'text-red-600';
-            const fColor = d.f1 >= 0.8 ? 'text-green-600' : d.f1 >= 0.5 ? 'text-yellow-600' : 'text-red-600';
-            html += `<tr>`;
-            html += `<td class="px-4 py-2 font-medium text-gray-800">${d.class}</td>`;
-            html += `<td class="px-4 py-2 text-center"><span class="font-semibold ${pColor}">${(d.precision * 100).toFixed(1)}%</span></td>`;
-            html += `<td class="px-4 py-2 text-center"><span class="font-semibold ${rColor}">${(d.recall * 100).toFixed(1)}%</span></td>`;
-            html += `<td class="px-4 py-2 text-center"><span class="font-semibold ${fColor}">${(d.f1 * 100).toFixed(1)}%</span></td>`;
-            html += `<td class="px-4 py-2 text-center text-gray-500">${d.support}</td>`;
-            html += `</tr>`;
+            const color = v => v >= 0.8 ? 'text-green-600' : v >= 0.5 ? 'text-yellow-600' : 'text-red-600';
+            html += `<tr class="hover:bg-gray-50">
+                <td class="px-4 py-2 font-medium text-gray-800">${d.class}</td>
+                <td class="px-4 py-2 text-center"><span class="font-semibold ${color(d.precision)}">${(d.precision*100).toFixed(1)}%</span></td>
+                <td class="px-4 py-2 text-center"><span class="font-semibold ${color(d.recall)}">${(d.recall*100).toFixed(1)}%</span></td>
+                <td class="px-4 py-2 text-center"><span class="font-semibold ${color(d.f1)}">${(d.f1*100).toFixed(1)}%</span></td>
+                <td class="px-4 py-2 text-center text-gray-500">${d.support}</td>
+            </tr>`;
         });
-
         html += '</tbody></table>';
-        tableDiv.innerHTML = html;
+        div.innerHTML = html;
     }
 });
 </script>

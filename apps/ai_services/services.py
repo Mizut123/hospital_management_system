@@ -1097,3 +1097,129 @@ def get_symptom_keywords():
     """
     symptoms = list(SYMPTOM_DIAGNOSIS_RULES.keys())
     return sorted([s.replace('_', ' ').title() for s in symptoms])
+
+
+def detect_outbreak_risk():
+    """
+    Detect potential disease outbreaks by comparing diagnosis counts over the
+    last 7 days against the previous 21-day baseline (normalised to a 7-day rate).
+
+    A disease is flagged when:
+      - >= 3 cases appear in the last 7 days, AND
+      - The recent 7-day rate is >= 2x the baseline rate (rapid growth signal)
+
+    Risk levels:
+      - moderate : 3-4 cases in 7 days with significant growth
+      - high     : 5-9 cases in 7 days
+      - critical : 10+ cases in 7 days (potential mass-infection event)
+
+    Returns:
+        list[dict] sorted by cases_last_7_days descending, or [] on error.
+    """
+    try:
+        from apps.medical_records.models import Diagnosis
+        from collections import Counter
+
+        now   = timezone.now()
+        day7  = (now - timedelta(days=7)).date()
+        day28 = (now - timedelta(days=28)).date()
+
+        recent_names = Diagnosis.objects.filter(
+            medical_record__visit_date__gte=day7
+        ).values_list('description', flat=True)
+
+        baseline_names = Diagnosis.objects.filter(
+            medical_record__visit_date__gte=day28,
+            medical_record__visit_date__lt=day7,
+        ).values_list('description', flat=True)
+
+        recent_counts   = Counter(recent_names)
+        baseline_counts = Counter(baseline_names)
+
+        alerts = []
+        for disease, count in recent_counts.items():
+            # Baseline: 21-day total normalised to a 7-day equivalent
+            baseline_7day = baseline_counts.get(disease, 0) / 3
+            growth_rate   = count / max(baseline_7day, 0.5)
+
+            if count >= 3 and growth_rate >= 2.0:
+                projected_14 = int(count * growth_rate * 2)
+                risk = (
+                    'critical' if count >= 10
+                    else 'high'     if count >= 5
+                    else 'moderate'
+                )
+                alerts.append({
+                    'disease':           disease,
+                    'cases_last_7_days': count,
+                    'baseline_avg':      round(baseline_7day, 1),
+                    'growth_rate':       round(growth_rate, 1),
+                    'projected_14_days': projected_14,
+                    'risk_level':        risk,
+                })
+
+        return sorted(alerts, key=lambda x: x['cases_last_7_days'], reverse=True)
+    except Exception:
+        return []
+
+
+def get_disease_trend_data(days=30):
+    """
+    Return daily diagnosis counts for the top 5 most common diseases over the
+    last `days` days, shaped for a Chart.js multi-line chart.
+
+    Returns:
+        {
+          'labels':   ['2024-01-01', ...],
+          'datasets': [{'label': 'Influenza', 'data': [2,0,1,...], ...}, ...]
+        }
+    """
+    try:
+        from apps.medical_records.models import Diagnosis
+        from collections import defaultdict
+
+        today = timezone.now().date()
+        start = today - timedelta(days=days - 1)
+
+        rows = Diagnosis.objects.filter(
+            medical_record__visit_date__gte=start
+        ).values('description', 'medical_record__visit_date')
+
+        counts        = defaultdict(lambda: defaultdict(int))
+        disease_total = defaultdict(int)
+
+        for row in rows:
+            name = row['description']
+            day  = row['medical_record__visit_date']
+            if day:
+                counts[name][str(day)] += 1
+                disease_total[name]    += 1
+
+        top5   = sorted(disease_total, key=disease_total.get, reverse=True)[:5]
+        labels = [str(start + timedelta(days=i)) for i in range(days)]
+
+        PALETTE = [
+            'rgba(239,68,68,',    # red
+            'rgba(245,158,11,',   # amber
+            'rgba(59,130,246,',   # blue
+            'rgba(16,185,129,',   # green
+            'rgba(139,92,246,',   # purple
+        ]
+
+        datasets = []
+        for idx, disease in enumerate(top5):
+            c = PALETTE[idx % len(PALETTE)]
+            datasets.append({
+                'label':            disease,
+                'data':             [counts[disease].get(lbl, 0) for lbl in labels],
+                'borderColor':      c + '1)',
+                'backgroundColor':  c + '0.12)',
+                'tension':          0.4,
+                'fill':             True,
+                'pointRadius':      3,
+                'pointHoverRadius': 6,
+            })
+
+        return {'labels': labels, 'datasets': datasets}
+    except Exception:
+        return {'labels': [], 'datasets': []}

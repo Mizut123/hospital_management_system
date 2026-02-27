@@ -11,7 +11,10 @@ from django.utils import timezone
 
 from apps.accounts.models import User
 from apps.appointments.models import Appointment
-from .services import get_patient_risk_score, calculate_wait_time
+from .services import (
+    get_patient_risk_score, calculate_wait_time,
+    detect_outbreak_risk, get_disease_trend_data,
+)
 from .models import TrainingData, MLModelVersion, PredictionLog
 
 
@@ -316,6 +319,10 @@ def ml_dashboard(request):
     feature_importances_data = active_model.feature_importances if active_model else '[]'
     per_class_metrics_data = active_model.per_class_metrics if active_model else '[]'
 
+    # Outbreak / epidemic surveillance
+    outbreak_alerts  = detect_outbreak_risk()
+    disease_trend_js = json.dumps(get_disease_trend_data(30))
+
     return render(request, 'ai_services/ml_dashboard.html', {
         'model_versions': model_versions,
         'active_model': active_model,
@@ -332,6 +339,8 @@ def ml_dashboard(request):
         'class_labels_data': class_labels_data,
         'feature_importances_data': feature_importances_data,
         'per_class_metrics_data': per_class_metrics_data,
+        'outbreak_alerts': outbreak_alerts,
+        'disease_trend_js': disease_trend_js,
     })
 
 
