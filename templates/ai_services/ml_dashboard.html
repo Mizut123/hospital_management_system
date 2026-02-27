@@ -366,6 +366,15 @@ document.addEventListener('DOMContentLoaded', function () {
     // Shared chart defaults
     Chart.defaults.font.family = "'Inter','Helvetica Neue',sans-serif";
     Chart.defaults.color = '#6B7280';
+    Chart.defaults.plugins.tooltip.backgroundColor = 'rgba(17,24,39,0.92)';
+    Chart.defaults.plugins.tooltip.titleColor      = '#F9FAFB';
+    Chart.defaults.plugins.tooltip.bodyColor       = '#D1D5DB';
+    Chart.defaults.plugins.tooltip.padding         = 12;
+    Chart.defaults.plugins.tooltip.cornerRadius    = 8;
+    Chart.defaults.plugins.tooltip.boxPadding      = 5;
+    Chart.defaults.plugins.legend.labels.usePointStyle = true;
+    Chart.defaults.plugins.legend.labels.pointStyle    = 'circle';
+    Chart.defaults.plugins.legend.labels.padding       = 16;
 
     const COLORS = ['#3B82F6','#EF4444','#10B981','#F59E0B','#6366F1',
                     '#EC4899','#14B8A6','#F97316','#8B5CF6','#06B6D4',
@@ -384,7 +393,14 @@ document.addEventListener('DOMContentLoaded', function () {
                     const d = new Date(l);
                     return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
                 }),
-                datasets: trendRaw.datasets,
+                datasets: trendRaw.datasets.map(ds => ({
+                    ...ds,
+                    borderWidth: 2.5,
+                    pointRadius: 4,
+                    pointHoverRadius: 7,
+                    tension: 0.38,
+                    fill: false,
+                })),
             },
             options: {
                 responsive: true,
@@ -428,17 +444,25 @@ document.addEventListener('DOMContentLoaded', function () {
                         label: 'Accuracy (%)',
                         data: accuracyData.map(d => d.accuracy_pct),
                         borderColor: '#7C3AED',
-                        backgroundColor: 'rgba(124,58,237,0.08)',
-                        fill: true, tension: 0.3,
-                        pointBackgroundColor: '#7C3AED', pointRadius: 6, pointHoverRadius: 8,
+                        backgroundColor: 'rgba(124,58,237,0.10)',
+                        fill: true, tension: 0.38,
+                        borderWidth: 2.5,
+                        pointBackgroundColor: '#fff',
+                        pointBorderColor: '#7C3AED',
+                        pointBorderWidth: 2,
+                        pointRadius: 6, pointHoverRadius: 9,
                     },
                     {
                         label: 'Training Samples',
                         data: accuracyData.map(d => d.training_samples),
                         borderColor: '#10B981',
                         backgroundColor: 'rgba(16,185,129,0.08)',
-                        fill: false, tension: 0.3, yAxisID: 'y1',
-                        pointBackgroundColor: '#10B981', pointRadius: 4,
+                        fill: false, tension: 0.38, yAxisID: 'y1',
+                        borderWidth: 2,
+                        pointBackgroundColor: '#fff',
+                        pointBorderColor: '#10B981',
+                        pointBorderWidth: 2,
+                        pointRadius: 4, pointHoverRadius: 7,
                     }
                 ]
             },
@@ -481,14 +505,17 @@ document.addEventListener('DOMContentLoaded', function () {
                 datasets: [{
                     data: diseaseData.map(d => d.count),
                     backgroundColor: COLORS.slice(0, diseaseData.length),
-                    borderWidth: 2, borderColor: '#fff',
+                    borderWidth: 3,
+                    borderColor: '#fff',
+                    hoverOffset: 8,
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                cutout: '68%',
                 plugins: {
-                    legend: { position: 'right', labels: { boxWidth: 12, font: { size: 11 } } },
+                    legend: { position: 'right', labels: { font: { size: 11 } } },
                     tooltip: {
                         callbacks: {
                             label: (ctx) => {
@@ -515,8 +542,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 datasets: [{
                     label: 'Gini Importance',
                     data:  sorted.map(d => d.importance),
-                    backgroundColor: sorted.map((_, i) => `rgba(124,58,237,${0.25 + (i / sorted.length) * 0.75})`),
-                    borderColor: '#7C3AED', borderWidth: 1,
+                    backgroundColor: sorted.map((_, i) => `rgba(124,58,237,${0.2 + (i / sorted.length) * 0.8})`),
+                    borderColor: 'transparent',
+                    borderWidth: 0,
+                    borderRadius: 5,
                 }]
             },
             options: {
@@ -550,11 +579,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 labels: perClassData.map(d => d.class.length > 18 ? d.class.substring(0, 18) + '…' : d.class),
                 datasets: [
                     { label: 'Precision', data: perClassData.map(d => d.precision),
-                      backgroundColor: 'rgba(59,130,246,0.8)', borderColor: '#3B82F6', borderWidth: 1 },
+                      backgroundColor: 'rgba(59,130,246,0.82)', borderColor: 'transparent', borderWidth: 0, borderRadius: 4 },
                     { label: 'Recall',    data: perClassData.map(d => d.recall),
-                      backgroundColor: 'rgba(16,185,129,0.8)', borderColor: '#10B981', borderWidth: 1 },
+                      backgroundColor: 'rgba(16,185,129,0.82)', borderColor: 'transparent', borderWidth: 0, borderRadius: 4 },
                     { label: 'F1-Score', data: perClassData.map(d => d.f1),
-                      backgroundColor: 'rgba(245,158,11,0.8)', borderColor: '#F59E0B', borderWidth: 1 },
+                      backgroundColor: 'rgba(245,158,11,0.82)', borderColor: 'transparent', borderWidth: 0, borderRadius: 4 },
                 ]
             },
             options: {

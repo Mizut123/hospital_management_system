@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Scan ID Card</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { -webkit-tap-highlight-color: transparent; }
+        #btn-capture:active { transform: scale(0.97); }
+    </style>
+</head>
+<body class="bg-gray-900 min-h-screen flex flex-col items-center justify-center p-6 select-none">
+
+{% if error %}
+<!-- ── Error state ─────────────────────────────────────────── -->
+<div class="w-full max-w-sm text-center">
+    <div class="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+    </div>
+    <h1 class="text-white text-xl font-bold mb-2">Link Expired</h1>
+    <p class="text-gray-400 text-sm">{{ error }}</p>
+</div>
+
+{% else %}
+<!-- ── Active scan session ────────────────────────────────── -->
+<div class="w-full max-w-sm" id="main">
+
+    <!-- Header -->
+    <div class="text-center mb-8">
+        <div class="w-16 h-16 bg-green-500 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-green-900">
+            <svg class="w-9 h-9 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                      d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5
+                         m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0"/>
+            </svg>
+        </div>
+        <h1 class="text-white text-2xl font-bold">Scan ID Card</h1>
+        <p class="text-gray-400 text-sm mt-1">Take a clear, well-lit photo of the front of the ID card</p>
+    </div>
+
+    <!-- Hidden file input — opens rear camera on mobile -->
+    <input type="file" id="photo-input" accept="image/*" capture="environment" class="hidden">
+
+    <!-- Capture button -->
+    <button id="btn-capture"
+            class="w-full py-5 bg-green-500 text-white rounded-2xl text-lg font-bold
+                   shadow-lg shadow-green-900 transition-transform active:scale-95 mb-4">
+        <span class="flex items-center justify-center space-x-3">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86
+                         a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5
+                         a2 2 0 01-2-2V9z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+            <span>Take Photo</span>
+        </span>
+    </button>
+
+    <!-- Tips -->
+    <div class="text-center text-xs text-gray-500 space-y-1">
+        <p>Hold your phone flat and parallel to the card</p>
+        <p>Make sure all four edges of the card are visible</p>
+    </div>
+
+    <!-- Processing state (hidden by default) -->
+    <div id="processing" class="hidden mt-8 text-center">
+        <div class="w-14 h-14 border-4 border-green-500 border-t-transparent rounded-full
+                    animate-spin mx-auto mb-4"></div>
+        <p class="text-white font-semibold text-lg">Reading ID card…</p>
+        <p class="text-gray-400 text-sm mt-1">This takes a few seconds</p>
+    </div>
+
+    <!-- Success state (hidden by default) -->
+    <div id="success" class="hidden mt-8 text-center">
+        <div class="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4
+                    shadow-lg shadow-green-900 animate-bounce">
+            <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+            </svg>
+        </div>
+        <h2 class="text-white text-2xl font-bold">Done!</h2>
+        <p class="text-gray-400 mt-2">Return to the computer — the form is being filled automatically.</p>
+    </div>
+
+    <!-- Error message (hidden by default) -->
+    <div id="error-msg"
+         class="hidden mt-4 p-4 bg-red-900 border border-red-600 rounded-xl text-red-300 text-sm text-center">
+    </div>
+
+    <!-- Retry button (hidden by default) -->
+    <button id="btn-retry"
+            class="hidden w-full mt-3 py-3 bg-gray-700 text-white rounded-xl font-medium text-sm">
+        Try Again
+    </button>
+</div>
+
+<script>
+const TOKEN     = '{{ token }}';
+const UPLOAD_URL = '/patients/api/scan-id/mobile-upload/?token=' + TOKEN;
+
+const input      = document.getElementById('photo-input');
+const btnCapture = document.getElementById('btn-capture');
+const processing = document.getElementById('processing');
+const success    = document.getElementById('success');
+const errorMsg   = document.getElementById('error-msg');
+const btnRetry   = document.getElementById('btn-retry');
+
+function showCapture() {
+    btnCapture.classList.remove('hidden');
+    processing.classList.add('hidden');
+    success.classList.add('hidden');
+    btnRetry.classList.add('hidden');
+}
+function showProcessing() {
+    btnCapture.classList.add('hidden');
+    processing.classList.remove('hidden');
+    success.classList.add('hidden');
+    errorMsg.classList.add('hidden');
+    btnRetry.classList.add('hidden');
+}
+function showSuccess() {
+    btnCapture.classList.add('hidden');
+    processing.classList.add('hidden');
+    success.classList.remove('hidden');
+    errorMsg.classList.add('hidden');
+    btnRetry.classList.add('hidden');
+}
+function showError(msg) {
+    processing.classList.add('hidden');
+    errorMsg.textContent = msg;
+    errorMsg.classList.remove('hidden');
+    btnCapture.classList.remove('hidden');
+    btnRetry.classList.remove('hidden');
+}
+
+btnCapture.addEventListener('click', () => input.click());
+btnRetry.addEventListener('click', () => { input.value = ''; input.click(); });
+
+input.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    showProcessing();
+
+    const formData = new FormData();
+    formData.append('id_image', file);
+
+    try {
+        const res = await fetch(UPLOAD_URL, { method: 'POST', body: formData });
+        const data = await res.json();
+        if (data.success) {
+            showSuccess();
+        } else {
+            showError(data.error || 'Failed to read the card. Please try again.');
+        }
+    } catch (err) {
+        showError('Network error. Make sure your phone is on the same Wi-Fi as the server.');
+    }
+});
+</script>
+{% endif %}
+
+</body>
+</html>

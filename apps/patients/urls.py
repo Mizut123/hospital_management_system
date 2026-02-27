@@ -18,4 +18,10 @@ urlpatterns = [
     path('api/scan-id/', views.scan_id_card_api, name='scan_id_api'),
     path('api/scan-id/learn/', views.scan_id_learn_api, name='scan_id_learn_api'),
     path('api/scan-id/save-profile/', views.save_card_profile_api, name='save_card_profile_api'),
+
+    # Mobile QR bridge
+    path('api/scan-id/token/', views.generate_scan_token, name='scan_id_token'),
+    path('api/scan-id/mobile-upload/', views.mobile_scan_upload, name='mobile_scan_upload'),
+    path('api/scan-id/poll/', views.poll_scan_result, name='poll_scan_result'),
+    path('scan/mobile/', views.mobile_scan_page, name='mobile_scan_page'),
 ]

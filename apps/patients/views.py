@@ -525,6 +525,114 @@ def save_card_profile_api(request):
         return JsonResponse({'error': str(e)}, status=500)
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Mobile-to-laptop QR bridge
+# Flow: laptop generates token → shows QR → phone opens URL → takes photo →
+#       uploads here → result stored in cache → laptop polls → auto-fills form
+# ─────────────────────────────────────────────────────────────────────────────
+
+@login_required
+def generate_scan_token(request):
+    """Generate a short-lived token for a cross-device ID scan session."""
+    from django.http import JsonResponse
+    from django.core.cache import cache
+    import uuid
+
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST only'}, status=405)
+
+    token = uuid.uuid4().hex
+    cache.set(f'mobilescan_{token}', {'status': 'pending'}, 300)   # 5-min TTL
+    return JsonResponse({'token': token})
+
+
+def mobile_scan_page(request):
+    """
+    Mobile-friendly page opened by phone after scanning the QR code.
+    No login required — access is secured by the short-lived token.
+    """
+    token = request.GET.get('token', '')
+    from django.core.cache import cache
+    if not token or cache.get(f'mobilescan_{token}') is None:
+        return render(request, 'patients/mobile_scan.html', {'error': 'Link expired or invalid. Ask the receptionist to generate a new QR code.'})
+    return render(request, 'patients/mobile_scan.html', {'token': token, 'error': None})
+
+
+def mobile_scan_upload(request):
+    """
+    Receive photo from phone, run OCR, store result in cache.
+    No login required — secured by token.
+    """
+    from django.http import JsonResponse
+    from django.core.cache import cache
+
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST only'}, status=405)
+
+    token = request.GET.get('token') or request.POST.get('token', '')
+    if not token:
+        return JsonResponse({'error': 'No token'}, status=400)
+
+    session = cache.get(f'mobilescan_{token}')
+    if session is None:
+        return JsonResponse({'error': 'Session expired. Ask the receptionist to generate a new QR code.'}, status=400)
+
+    image_file = request.FILES.get('id_image')
+    if not image_file:
+        return JsonResponse({'error': 'No image provided'}, status=400)
+
+    if image_file.size < 30 * 1024:
+        return JsonResponse({'error': 'Image too small or low quality. Please retake the photo.'}, status=400)
+
+    try:
+        import easyocr
+    except ImportError:
+        return JsonResponse({'error': 'OCR library not installed on server.'}, status=503)
+
+    try:
+        from PIL import Image, ImageFilter
+        import numpy as np
+
+        img = Image.open(image_file).convert('RGB')
+        max_w = 1600
+        if img.width > max_w:
+            ratio = max_w / img.width
+            img = img.resize((max_w, int(img.height * ratio)), Image.LANCZOS)
+        elif img.width < 600:
+            img = img.resize((img.width * 2, img.height * 2), Image.LANCZOS)
+        img = img.filter(ImageFilter.UnsharpMask(radius=1.5, percent=130, threshold=2))
+        img_array = np.array(img)
+
+        reader = _get_ocr_reader()
+        results = reader.readtext(img_array, detail=1, paragraph=False, min_size=10)
+        texts = [r[1] for r in results if r[2] > 0.20]
+
+        profile = _load_card_profile()
+        extracted = _parse_id_text_with_profile(texts, profile) if profile else _parse_id_text(texts)
+
+        cache.set(f'mobilescan_{token}', {'status': 'done', 'data': extracted}, 300)
+        return JsonResponse({'success': True, 'message': 'Done! Return to the computer.'})
+
+    except Exception as e:
+        cache.set(f'mobilescan_{token}', {'status': 'error', 'error': str(e)}, 300)
+        return JsonResponse({'error': f'Processing failed: {str(e)}'}, status=500)
+
+
+def poll_scan_result(request):
+    """Laptop polls this every 2 s to check if the mobile photo has been processed."""
+    from django.http import JsonResponse
+    from django.core.cache import cache
+
+    token = request.GET.get('token', '')
+    if not token:
+        return JsonResponse({'status': 'error', 'error': 'No token'}, status=400)
+
+    session = cache.get(f'mobilescan_{token}')
+    if session is None:
+        return JsonResponse({'status': 'expired'})
+    return JsonResponse(session)
+
+
 def _parse_id_text(text_blocks):
     """
     Parse OCR text blocks from a national ID card with this field order:

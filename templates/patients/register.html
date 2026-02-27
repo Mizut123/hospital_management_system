@@ -153,8 +153,8 @@
         <input type="file" id="id-card-input" accept="image/*" capture="environment"
                class="hidden" @change="onImageSelected($event)">
 
-        <!-- Drop zone shown when no image is selected -->
-        <div x-show="!preview"
+        <!-- Drop zone — laptop camera / file picker (existing flow) -->
+        <div x-show="!preview && !phoneScanning"
              class="flex flex-col items-center justify-center border-2 border-dashed border-green-300
                     rounded-xl py-8 cursor-pointer hover:border-green-400 transition-colors"
              @click="document.getElementById('id-card-input').click()">
@@ -166,14 +166,62 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                       d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
             </svg>
-            <p class="text-sm font-medium text-gray-700">Tap to open camera</p>
+            <p class="text-sm font-medium text-gray-700">Upload or use this device's camera</p>
             <p class="text-xs text-gray-500 mt-1">Photo is processed automatically after capture</p>
         </div>
 
-        <!-- Preview + controls shown once an image is chosen -->
-        <div x-show="preview" class="space-y-3">
+        <!-- Divider -->
+        <div x-show="!preview && !phoneScanning" class="flex items-center my-1">
+            <div class="flex-1 h-px bg-gray-200"></div>
+            <span class="px-3 text-xs text-gray-400 font-medium">or</span>
+            <div class="flex-1 h-px bg-gray-200"></div>
+        </div>
+
+        <!-- Phone scan button -->
+        <button type="button" x-show="!preview && !phoneScanning"
+                @click="startPhoneScan()"
+                class="w-full py-2.5 border-2 border-green-300 text-green-700 rounded-xl text-sm
+                       font-semibold hover:bg-green-50 transition-colors flex items-center justify-center space-x-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01
+                         M16 20h4M4 12h4m12 0h.01M5 8H3a2 2 0 00-2 2v6a2 2 0 002 2h2"/>
+            </svg>
+            <span>Scan with my phone (QR code)</span>
+        </button>
+
+        <!-- QR / waiting panel (phone scanning mode) -->
+        <div x-show="phoneScanning" class="space-y-4">
+            <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 text-center">
+                <p class="text-sm font-semibold text-gray-700 mb-3">
+                    Scan this QR code with your phone camera:
+                </p>
+                <canvas id="phone-qr-canvas" class="mx-auto rounded-lg"></canvas>
+                <p class="text-xs text-gray-500 mt-3">
+                    Your phone must be on the <strong>same Wi-Fi</strong> as this computer.
+                    Open the link → take a photo → it will appear here automatically.
+                </p>
+            </div>
+
+            <!-- Waiting indicator -->
+            <div x-show="!hasExtracted" class="flex items-center justify-center space-x-2 py-2 text-sm text-blue-600">
+                <svg class="animate-spin w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                </svg>
+                <span>Waiting for photo from phone…</span>
+            </div>
+
+            <button type="button" @click="cancelPhoneScan()"
+                    class="w-full py-2 border border-gray-300 text-gray-600 rounded-lg text-sm hover:bg-gray-50">
+                Cancel
+            </button>
+        </div>
+
+        <!-- Preview — shown after local capture -->
+        <div x-show="preview" class="space-y-2">
             <div class="relative">
-                <img :src="preview" class="w-full max-h-48 object-contain rounded-lg border border-gray-200">
+                <img :src="preview" class="w-full max-h-44 object-contain rounded-lg border border-gray-200">
                 <button type="button" @click="clearImage()"
                         class="absolute top-2 right-2 bg-red-100 text-red-600 rounded-full p-1
                                hover:bg-red-200 transition-colors">
@@ -182,78 +230,77 @@
                     </svg>
                 </button>
             </div>
+        </div>
 
-            <!-- Status message -->
-            <div x-show="statusMsg"
-                 class="flex items-center space-x-2 text-sm px-3 py-2 rounded-lg"
-                 :class="statusType === 'success' ? 'bg-green-50 text-green-700' :
-                         statusType === 'error'   ? 'bg-red-50 text-red-600'    :
-                                                    'bg-blue-50 text-blue-600'">
-                <svg x-show="isProcessing" class="animate-spin w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-                    <path class="opacity-75" fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
-                </svg>
-                <span x-text="statusMsg"></span>
+        <!-- Status message — shown for both local and phone flows -->
+        <div x-show="statusMsg && (preview || hasExtracted)"
+             class="flex items-center space-x-2 text-sm px-3 py-2 rounded-lg"
+             :class="statusType === 'success' ? 'bg-green-50 text-green-700' :
+                     statusType === 'error'   ? 'bg-red-50 text-red-600'    :
+                                                'bg-blue-50 text-blue-600'">
+            <svg x-show="isProcessing" class="animate-spin w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+            </svg>
+            <span x-text="statusMsg"></span>
+        </div>
+
+        <!-- Retry button — only after local OCR failure -->
+        <button type="button" @click="extractFromImage()"
+                :disabled="isProcessing"
+                x-show="preview && statusType === 'error' && !isProcessing && !hasExtracted"
+                class="w-full py-2.5 bg-orange-500 text-white rounded-lg font-medium
+                       hover:bg-orange-600 transition-colors disabled:opacity-50">
+            Retry Extraction
+        </button>
+
+        <!-- Review panel — shown for BOTH local capture and phone scan results -->
+        <div x-show="hasExtracted" class="border border-green-200 rounded-xl p-4 bg-white shadow-sm">
+            <p class="text-xs font-semibold text-green-700 mb-3">
+                Review extracted data — correct any errors, then click Apply:
+            </p>
+            <div class="grid grid-cols-2 gap-2 mb-3">
+                <div>
+                    <label class="text-xs text-gray-500">Surname</label>
+                    <input type="text" x-model="extractedData.last_name"
+                           class="w-full text-sm border border-gray-300 rounded px-2 py-1.5 mt-0.5 focus:ring-1 focus:ring-green-400">
+                </div>
+                <div>
+                    <label class="text-xs text-gray-500">First Name</label>
+                    <input type="text" x-model="extractedData.first_name"
+                           class="w-full text-sm border border-gray-300 rounded px-2 py-1.5 mt-0.5 focus:ring-1 focus:ring-green-400">
+                </div>
+                <div>
+                    <label class="text-xs text-gray-500">Date of Birth</label>
+                    <input type="date" x-model="extractedData.date_of_birth"
+                           class="w-full text-sm border border-gray-300 rounded px-2 py-1.5 mt-0.5 focus:ring-1 focus:ring-green-400">
+                </div>
+                <div>
+                    <label class="text-xs text-gray-500">Gender</label>
+                    <select x-model="extractedData.gender"
+                            class="w-full text-sm border border-gray-300 rounded px-2 py-1.5 mt-0.5 focus:ring-1 focus:ring-green-400">
+                        <option value="">—</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                    </select>
+                </div>
+                <div class="col-span-2">
+                    <label class="text-xs text-gray-500">ID Number</label>
+                    <input type="text" x-model="extractedData.national_id"
+                           class="w-full text-sm border border-gray-300 rounded px-2 py-1.5 mt-0.5 focus:ring-1 focus:ring-green-400">
+                </div>
             </div>
-
-            <!-- Retry button — only shown if OCR failed -->
-            <button type="button" @click="extractFromImage()"
-                    :disabled="isProcessing"
-                    x-show="statusType === 'error' && !isProcessing && !hasExtracted"
-                    class="w-full py-2.5 bg-orange-500 text-white rounded-lg font-medium
-                           hover:bg-orange-600 transition-colors disabled:opacity-50">
-                Retry Extraction
-            </button>
-
-            <!-- Review panel: receptionist can fix OCR errors before applying -->
-            <div x-show="hasExtracted" class="border border-green-200 rounded-lg p-3 bg-white">
-                <p class="text-xs font-semibold text-green-700 mb-2">
-                    Review extracted data — correct any errors, then click Apply:
-                </p>
-                <div class="grid grid-cols-2 gap-2 mb-3">
-                    <div>
-                        <label class="text-xs text-gray-500">Surname</label>
-                        <input type="text" x-model="extractedData.last_name"
-                               class="w-full text-sm border border-gray-300 rounded px-2 py-1 mt-0.5">
-                    </div>
-                    <div>
-                        <label class="text-xs text-gray-500">First Name</label>
-                        <input type="text" x-model="extractedData.first_name"
-                               class="w-full text-sm border border-gray-300 rounded px-2 py-1 mt-0.5">
-                    </div>
-                    <div>
-                        <label class="text-xs text-gray-500">Date of Birth</label>
-                        <input type="date" x-model="extractedData.date_of_birth"
-                               class="w-full text-sm border border-gray-300 rounded px-2 py-1 mt-0.5">
-                    </div>
-                    <div>
-                        <label class="text-xs text-gray-500">Gender</label>
-                        <select x-model="extractedData.gender"
-                                class="w-full text-sm border border-gray-300 rounded px-2 py-1 mt-0.5">
-                            <option value="">—</option>
-                            <option value="male">Male</option>
-                            <option value="female">Female</option>
-                        </select>
-                    </div>
-                    <div class="col-span-2">
-                        <label class="text-xs text-gray-500">ID Number</label>
-                        <input type="text" x-model="extractedData.national_id"
-                               class="w-full text-sm border border-gray-300 rounded px-2 py-1 mt-0.5">
-                    </div>
-                </div>
-                <div class="flex space-x-2">
-                    <button type="button" @click="clearImage()"
-                            class="flex-1 py-2 text-sm border border-gray-300 text-gray-600
-                                   rounded-lg hover:bg-gray-50 transition-colors">
-                        Retake
-                    </button>
-                    <button type="button" @click="applyToForm()"
-                            class="flex-1 py-2 text-sm bg-green-600 text-white rounded-lg
-                                   font-medium hover:bg-green-700 transition-colors">
-                        Apply to Form ✓
-                    </button>
-                </div>
+            <div class="flex space-x-2">
+                <button type="button" @click="clearImage(); cancelPhoneScan(); hasExtracted = false; statusMsg = '';"
+                        class="flex-1 py-2 text-sm border border-gray-300 text-gray-600
+                               rounded-lg hover:bg-gray-50 transition-colors">
+                    Start Over
+                </button>
+                <button type="button" @click="applyToForm()"
+                        class="flex-1 py-2 text-sm bg-green-600 text-white rounded-lg
+                               font-medium hover:bg-green-700 transition-colors">
+                    Apply to Form ✓
+                </button>
             </div>
         </div>
 
@@ -487,6 +534,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 <script>
 function idScanner() {
     return {
@@ -495,9 +543,84 @@ function idScanner() {
         isProcessing: false,
         statusMsg: '',
         statusType: '',
-        // extractedData holds OCR result for the review step before applying to the form
         extractedData: { national_id: '', first_name: '', last_name: '', date_of_birth: '', gender: '', address: '' },
         hasExtracted: false,
+
+        // ── Phone QR bridge ──────────────────────────────────────
+        phoneScanning: false,
+        phoneToken: null,
+        _pollTimer: null,
+
+        async startPhoneScan() {
+            try {
+                const csrf = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                const res  = await fetch('/patients/api/scan-id/token/', {
+                    method: 'POST', headers: { 'X-CSRFToken': csrf },
+                });
+                const { token } = await res.json();
+                this.phoneToken   = token;
+                this.phoneScanning = true;
+                this.hasExtracted  = false;
+
+                // Build the full URL the phone will open
+                const url = window.location.origin + '/patients/scan/mobile/?token=' + token;
+
+                // Render QR code after Alpine updates the DOM
+                this.$nextTick(() => {
+                    const canvas = document.getElementById('phone-qr-canvas');
+                    if (canvas && typeof QRCode !== 'undefined') {
+                        QRCode.toCanvas(canvas, url, { width: 200, margin: 2 });
+                    }
+                });
+
+                // Start polling every 2 s
+                this._pollTimer = setInterval(() => this._pollPhone(), 2000);
+            } catch (e) {
+                alert('Could not start phone scan. Check network connection.');
+            }
+        },
+
+        async _pollPhone() {
+            if (!this.phoneToken) return;
+            try {
+                const res  = await fetch('/patients/api/scan-id/poll/?token=' + this.phoneToken);
+                const data = await res.json();
+
+                if (data.status === 'done') {
+                    clearInterval(this._pollTimer);
+                    this.phoneScanning = false;
+                    this.phoneToken = null;
+                    if (data.data && Object.values(data.data).some(v => v)) {
+                        this.extractedData = Object.assign(
+                            { national_id:'', first_name:'', last_name:'', date_of_birth:'', gender:'', address:'' },
+                            data.data
+                        );
+                        this.hasExtracted = true;
+                        this.statusMsg  = 'Photo received from phone! Review the data below, then click Apply.';
+                        this.statusType = 'success';
+                    } else {
+                        this.statusMsg  = 'Phone photo processed but no fields were extracted. Fill in manually.';
+                        this.statusType = 'error';
+                    }
+                } else if (data.status === 'expired') {
+                    clearInterval(this._pollTimer);
+                    this.phoneScanning = false;
+                    this.phoneToken = null;
+                } else if (data.status === 'error') {
+                    clearInterval(this._pollTimer);
+                    this.phoneScanning = false;
+                    this.phoneToken = null;
+                    this.statusMsg  = 'Phone scan error: ' + (data.error || 'unknown');
+                    this.statusType = 'error';
+                }
+            } catch (_) {}
+        },
+
+        cancelPhoneScan() {
+            clearInterval(this._pollTimer);
+            this.phoneScanning = false;
+            this.phoneToken    = null;
+        },
 
         onImageSelected(event) {
             const file = event.target.files[0];
