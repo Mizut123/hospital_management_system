@@ -166,8 +166,8 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                       d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
             </svg>
-            <p class="text-sm font-medium text-gray-700">Tap to open camera / choose file</p>
-            <p class="text-xs text-gray-500 mt-1">Point the rear camera at the ID card</p>
+            <p class="text-sm font-medium text-gray-700">Tap to open camera</p>
+            <p class="text-xs text-gray-500 mt-1">Photo is processed automatically after capture</p>
         </div>
 
         <!-- Preview + controls shown once an image is chosen -->
@@ -197,13 +197,13 @@
                 <span x-text="statusMsg"></span>
             </div>
 
-            <!-- Extract button (shown when no review data yet) -->
+            <!-- Retry button — only shown if OCR failed -->
             <button type="button" @click="extractFromImage()"
                     :disabled="isProcessing"
-                    x-show="!isProcessing && !hasExtracted"
-                    class="w-full py-2.5 bg-green-600 text-white rounded-lg font-medium
-                           hover:bg-green-700 transition-colors disabled:opacity-50">
-                Extract Information from ID
+                    x-show="statusType === 'error' && !isProcessing && !hasExtracted"
+                    class="w-full py-2.5 bg-orange-500 text-white rounded-lg font-medium
+                           hover:bg-orange-600 transition-colors disabled:opacity-50">
+                Retry Extraction
             </button>
 
             <!-- Review panel: receptionist can fix OCR errors before applying -->
@@ -503,14 +503,15 @@ function idScanner() {
             const file = event.target.files[0];
             if (!file) return;
             this.imageFile = file;
-            this.statusMsg = '';
-            this.statusType = '';
+            this.statusMsg = 'Scanning ID card\u2026';
+            this.statusType = 'info';
+            this.hasExtracted = false;
 
             const reader = new FileReader();
             reader.onload = (e) => { this.preview = e.target.result; };
             reader.readAsDataURL(file);
 
-            // Try QR code first — instant, no server needed
+            // Try QR code first — instant, no server needed; fall back to OCR automatically
             this.tryQRCode(file);
         },
 
@@ -537,8 +538,8 @@ function idScanner() {
                         return;
                     }
                 }
-                this.statusMsg = 'No QR code found. Click "Extract Information" to use OCR.';
-                this.statusType = 'info';
+                // No QR — start OCR automatically, no button click needed
+                this.extractFromImage();
             };
             img.src = URL.createObjectURL(file);
         },
