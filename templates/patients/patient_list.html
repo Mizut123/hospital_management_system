@@ -57,7 +57,7 @@
                         </span>
                     </td>
                     <td class="px-6 py-4 text-right">
-                        <a href="{% url 'patients:detail' patient.pk %}" class="text-blue-600 hover:text-blue-900">View</a>
+                        <a href="{% url 'patients:detail' patient.user_id %}" class="text-blue-600 hover:text-blue-900">View</a>
                     </td>
                 </tr>
                 {% empty %}

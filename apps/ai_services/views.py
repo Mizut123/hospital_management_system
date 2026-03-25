@@ -295,10 +295,10 @@ def ml_dashboard(request):
         item['accuracy_pct'] = round(item['accuracy'] * 100, 1)
         item['trained_at'] = item['trained_at'].strftime('%Y-%m-%d %H:%M')
 
-    # Recent predictions
+    # Recent predictions — most recent first
     recent_predictions = PredictionLog.objects.select_related(
-        'model_version', 'predicted_by'
-    )[:10]
+        'model_version', 'predicted_by', 'patient'
+    ).order_by('-created_at')[:10]
 
     # Prediction correctness rate by model version
     version_performance = list(
@@ -318,6 +318,50 @@ def ml_dashboard(request):
     class_labels_data = active_model.class_labels if active_model else '[]'
     feature_importances_data = active_model.feature_importances if active_model else '[]'
     per_class_metrics_data = active_model.per_class_metrics if active_model else '[]'
+
+    # ── NEW: Prediction confidence bands ─────────────────────────────
+    from django.db.models import Case, When, IntegerField
+    pred_logs = PredictionLog.objects.all()
+    band_90  = pred_logs.filter(confidence_1__gte=0.90).count()
+    band_70  = pred_logs.filter(confidence_1__gte=0.70, confidence_1__lt=0.90).count()
+    band_50  = pred_logs.filter(confidence_1__gte=0.50, confidence_1__lt=0.70).count()
+    band_low = pred_logs.filter(confidence_1__lt=0.50).count()
+    confidence_bands = json.dumps({
+        'labels': ['90–100%', '70–89%', '50–69%', '<50%'],
+        'data': [band_90, band_70, band_50, band_low],
+    })
+
+    # ── NEW: Top 10 most predicted diseases ──────────────────────────
+    top_predicted = list(
+        PredictionLog.objects.exclude(prediction_1='')
+        .values('prediction_1')
+        .annotate(count=Count('id'))
+        .order_by('-count')[:10]
+    )
+    top_predicted_js = json.dumps({
+        'labels': [d['prediction_1'] for d in top_predicted],
+        'data':   [d['count'] for d in top_predicted],
+    })
+
+    # ── NEW: Doctor correction rate ──────────────────────────────────
+    total_td = TrainingData.objects.count()
+    correct_td   = TrainingData.objects.filter(prediction_correct=True).count()
+    incorrect_td = total_td - correct_td
+    correction_rate_js = json.dumps({
+        'correct':   correct_td,
+        'incorrect': incorrect_td,
+    })
+
+    # ── NEW: Daily prediction volume last 30 days ────────────────────
+    from datetime import date, timedelta
+    today_date = timezone.now().date()
+    vol_labels, vol_data = [], []
+    for i in range(29, -1, -1):
+        day = today_date - timedelta(days=i)
+        cnt = PredictionLog.objects.filter(created_at__date=day).count()
+        vol_labels.append(day.strftime('%b %d'))
+        vol_data.append(cnt)
+    weekly_volume_js = json.dumps({'labels': vol_labels, 'data': vol_data})
 
     # Outbreak / epidemic surveillance
     outbreak_alerts  = detect_outbreak_risk()
@@ -341,6 +385,10 @@ def ml_dashboard(request):
         'per_class_metrics_data': per_class_metrics_data,
         'outbreak_alerts': outbreak_alerts,
         'disease_trend_js': disease_trend_js,
+        'confidence_bands': confidence_bands,
+        'top_predicted_js': top_predicted_js,
+        'correction_rate_js': correction_rate_js,
+        'weekly_volume_js': weekly_volume_js,
     })
 
 

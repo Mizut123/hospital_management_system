@@ -79,9 +79,16 @@
                     <p class="font-medium text-gray-800">{{ item.medicine.name }}</p>
                     <p class="text-sm text-gray-500">{{ item.medicine.category|default:"Uncategorized" }}</p>
                 </div>
-                <button class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium">
-                    Reorder Now
-                </button>
+                <div class="flex items-center gap-2">
+                    <a href="{% url 'pharmacy:adjust_stock' item.pk %}"
+                       class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium">
+                        Restock Now
+                    </a>
+                    <a href="{% url 'pharmacy:stock_transactions' item.pk %}"
+                       class="px-3 py-2 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 transition-colors text-sm">
+                        History
+                    </a>
+                </div>
             </div>
             {% endfor %}
         </div>
@@ -114,9 +121,16 @@
                     <p class="text-sm text-gray-500">Reorder Level</p>
                     <p class="font-semibold text-gray-800">{{ item.reorder_level }}</p>
                 </div>
-                <button class="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors text-sm font-medium">
-                    Restock
-                </button>
+                <div class="flex items-center gap-2">
+                    <a href="{% url 'pharmacy:adjust_stock' item.pk %}"
+                       class="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors text-sm font-medium">
+                        Restock
+                    </a>
+                    <a href="{% url 'pharmacy:stock_transactions' item.pk %}"
+                       class="px-3 py-2 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 transition-colors text-sm">
+                        History
+                    </a>
+                </div>
             </div>
             {% endfor %}
         </div>

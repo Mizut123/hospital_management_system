@@ -16,6 +16,7 @@ urlpatterns = [
     # API endpoints
     path('api/symptom-chatbot/', views.symptom_chatbot_api, name='symptom_chatbot_api'),
     path('api/scan-id/', views.scan_id_card_api, name='scan_id_api'),
+    path('api/scan-id/status/', views.scan_id_status_api, name='scan_id_status_api'),
     path('api/scan-id/learn/', views.scan_id_learn_api, name='scan_id_learn_api'),
     path('api/scan-id/save-profile/', views.save_card_profile_api, name='save_card_profile_api'),
 

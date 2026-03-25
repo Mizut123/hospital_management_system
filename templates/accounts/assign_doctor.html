@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% block title %}Assign Doctor — {{ department.name }}{% endblock %}
+{% block page_title %}Assign Doctor to {{ department.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto space-y-6">
+
+  <!-- Back link -->
+  <a href="{% url 'accounts:department_list' %}" class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+    </svg>
+    Back to Departments
+  </a>
+
+  <!-- Department info card -->
+  <div class="bg-red-50 border border-red-200 rounded-2xl p-5 flex items-start gap-4">
+    <div class="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center shrink-0">
+      <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+      </svg>
+    </div>
+    <div>
+      <p class="font-semibold text-red-800">{{ department.name }} has no doctors assigned</p>
+      <p class="text-sm text-red-600 mt-0.5">Select a doctor below to assign them to this department. If a doctor is already in another department, they will be moved.</p>
+    </div>
+  </div>
+
+  <!-- Doctor selection form -->
+  <form method="post" class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-5">
+    {% csrf_token %}
+
+    <h3 class="font-semibold text-gray-800">Select a Doctor</h3>
+
+    {% if available_doctors %}
+    <div class="space-y-2 max-h-96 overflow-y-auto">
+      {% for doc in available_doctors %}
+      <label class="flex items-center gap-4 p-3 rounded-xl border border-gray-200 hover:border-blue-300 hover:bg-blue-50 cursor-pointer transition-all has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50">
+        <input type="radio" name="doctor_id" value="{{ doc.pk }}" class="w-4 h-4 text-blue-600 shrink-0">
+        <div class="flex-1 min-w-0">
+          <p class="font-medium text-gray-800 text-sm">Dr. {{ doc.user.get_full_name }}</p>
+          <p class="text-xs text-gray-500">{{ doc.specialization }}
+            {% if doc.department %}
+            · Currently in <span class="text-orange-600 font-medium">{{ doc.department.name }}</span>
+            {% else %}
+            · <span class="text-green-600 font-medium">Unassigned</span>
+            {% endif %}
+          </p>
+        </div>
+        <span class="text-xs text-gray-400 shrink-0">{{ doc.experience_years }} yr{{ doc.experience_years|pluralize }}</span>
+      </label>
+      {% endfor %}
+    </div>
+    <label class="flex items-center gap-3 px-1">
+      <input type="checkbox" name="set_as_head" value="1" class="w-4 h-4 text-blue-600 border-gray-300 rounded">
+      <span class="text-sm text-gray-600">Also set as department head</span>
+    </label>
+    <button type="submit"
+            class="w-full py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-colors">
+      Assign Doctor
+    </button>
+    {% else %}
+    <div class="text-center py-10">
+      <svg class="w-12 h-12 mx-auto text-gray-200 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+      </svg>
+      <p class="text-gray-500 font-medium">No doctors registered yet</p>
+      <p class="text-gray-400 text-sm mt-1">Create a doctor account first.</p>
+      <a href="{% url 'accounts:user_create' %}" class="mt-4 inline-block px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+        Create Doctor Account
+      </a>
+    </div>
+    {% endif %}
+  </form>
+
+</div>
+{% endblock %}

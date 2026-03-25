@@ -14,21 +14,45 @@
         </div>
     </div>
 
+    <!-- Warning banner for departments without doctors -->
+    {% if empty_depts %}
+    <div class="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
+        <svg class="w-5 h-5 text-red-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+        </svg>
+        <div>
+            <p class="text-sm font-semibold text-red-800">
+                {{ empty_depts|length }} department{{ empty_depts|length|pluralize }} {{ empty_depts|length|pluralize:"has,have" }} no doctors assigned
+            </p>
+            <p class="text-xs text-red-600 mt-0.5">
+                Departments without doctors cannot accept appointments.
+                Assign at least one doctor to:
+                {% for d in empty_depts %}<strong>{{ d.name }}</strong>{% if not forloop.last %}, {% endif %}{% endfor %}.
+            </p>
+        </div>
+    </div>
+    {% endif %}
+
     <!-- Departments Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {% for dept in departments %}
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
+        <div class="bg-white rounded-xl shadow-sm border {% if dept.doctor_count == 0 %}border-red-200{% else %}border-gray-100{% endif %} p-6 hover:shadow-md transition-shadow">
             <div class="flex items-start justify-between mb-4">
-                <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                    <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="w-12 h-12 {% if dept.doctor_count == 0 %}bg-red-100{% else %}bg-blue-100{% endif %} rounded-xl flex items-center justify-center">
+                    <svg class="w-6 h-6 {% if dept.doctor_count == 0 %}text-red-500{% else %}text-blue-600{% endif %}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                     </svg>
                 </div>
-                {% if dept.is_active %}
-                <span class="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">Active</span>
-                {% else %}
-                <span class="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded-full">Inactive</span>
-                {% endif %}
+                <div class="flex items-center gap-2">
+                    {% if dept.doctor_count == 0 %}
+                    <span class="px-2 py-1 text-xs font-semibold bg-red-100 text-red-700 rounded-full">No Doctors</span>
+                    {% endif %}
+                    {% if dept.is_active %}
+                    <span class="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">Active</span>
+                    {% else %}
+                    <span class="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded-full">Inactive</span>
+                    {% endif %}
+                </div>
             </div>
             <h3 class="text-lg font-semibold text-gray-800 mb-2">{{ dept.name }}</h3>
             <p class="text-sm text-gray-500 mb-4">{{ dept.description|default:"No description" }}</p>
@@ -37,10 +61,38 @@
                     {% if dept.head_doctor %}
                     Head: Dr. {{ dept.head_doctor.get_full_name }}
                     {% else %}
-                    No head assigned
+                    <span class="text-orange-500">No head assigned</span>
                     {% endif %}
                 </span>
-                <span class="text-blue-600 font-medium">{{ dept.doctors.count }} doctors</span>
+                <span class="{% if dept.doctor_count == 0 %}text-red-600{% else %}text-blue-600{% endif %} font-semibold">{{ dept.doctor_count }} doctor{{ dept.doctor_count|pluralize }}</span>
+            </div>
+            <div class="mt-4 pt-4 border-t {% if dept.doctor_count == 0 %}border-red-100{% else %}border-gray-100{% endif %} flex gap-2">
+                <a href="{% url 'accounts:manage_department' dept.pk %}"
+                   class="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-medium rounded-lg border transition-colors
+                          {% if dept.doctor_count == 0 %}border-gray-200 text-gray-600 hover:bg-gray-50{% else %}border-blue-200 text-blue-700 hover:bg-blue-50{% endif %}">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    Manage
+                </a>
+                {% if dept.doctor_count == 0 %}
+                <a href="{% url 'accounts:assign_doctor' dept.pk %}"
+                   class="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                    </svg>
+                    Assign Doctor
+                </a>
+                {% elif not dept.head_doctor %}
+                <a href="{% url 'accounts:manage_department' dept.pk %}"
+                   class="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-orange-500 text-white text-sm font-medium rounded-lg hover:bg-orange-600 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                    </svg>
+                    Set Head
+                </a>
+                {% endif %}
             </div>
         </div>
         {% empty %}

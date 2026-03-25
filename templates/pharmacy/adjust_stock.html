@@ -1,152 +1,209 @@
 {% extends 'base.html' %}
 
-{% block title %}Adjust Stock - HMS{% endblock %}
+{% block title %}Adjust Stock - {{ stock.medicine.name }} - HMS{% endblock %}
 
 {% block content %}
-<div class="max-w-2xl mx-auto space-y-6 animate-fade-in">
-    <!-- Back Button -->
-    <a href="{% url 'pharmacy:stock' %}" class="inline-flex items-center text-gray-600 hover:text-gray-800">
-        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+<div class="max-w-2xl mx-auto space-y-5 animate-fade-in"
+     x-data="{
+       adjType: 'add',
+       qty: 0,
+       currentQty: {{ stock.quantity }},
+       reason: '',
+       get newQty() {
+         const n = parseInt(this.qty) || 0;
+         if (this.adjType === 'add') return this.currentQty + n;
+         const result = this.currentQty - n;
+         return result < 0 ? 0 : result;
+       },
+       get isValid() {
+         const n = parseInt(this.qty) || 0;
+         if (n <= 0) return false;
+         if (this.adjType === 'remove' && n > this.currentQty) return false;
+         return this.reason.trim().length > 0;
+       }
+     }">
+
+  <!-- Back -->
+  <a href="{% url 'pharmacy:stock' %}" class="inline-flex items-center text-gray-500 hover:text-gray-800 text-sm transition-colors">
+    <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+    </svg>
+    Back to Stock Management
+  </a>
+
+  <!-- Header -->
+  <div class="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-6 text-white">
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-xl font-bold">Adjust Stock</h1>
+        <p class="text-blue-100 mt-0.5 text-sm">{{ stock.medicine.name }}</p>
+      </div>
+      <div class="text-right">
+        <p class="text-blue-200 text-xs">Batch</p>
+        <p class="font-semibold">{{ stock.batch_number|default:"N/A" }}</p>
+      </div>
+    </div>
+
+    <!-- Current / New Qty display -->
+    <div class="mt-4 grid grid-cols-3 gap-3">
+      <div class="bg-white/10 rounded-xl p-3 text-center">
+        <p class="text-blue-200 text-xs mb-1">Current Stock</p>
+        <p class="text-2xl font-bold">{{ stock.quantity }}</p>
+      </div>
+      <div class="bg-white/10 rounded-xl p-3 text-center flex items-center justify-center">
+        <svg class="w-6 h-6 text-blue-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
         </svg>
-        Back to Stock Management
-    </a>
+      </div>
+      <div class="rounded-xl p-3 text-center"
+           :class="newQty > currentQty ? 'bg-green-500/30' : newQty < currentQty ? 'bg-red-500/30' : 'bg-white/10'">
+        <p class="text-blue-200 text-xs mb-1">After Adjustment</p>
+        <p class="text-2xl font-bold" x-text="newQty"></p>
+      </div>
+    </div>
+  </div>
 
-    <!-- Header -->
-    <div>
-        <h1 class="text-2xl font-bold text-gray-800">Adjust Stock Quantity</h1>
-        <p class="text-gray-500 mt-1">{{ stock.medicine.name }} - Batch: {{ stock.batch_number }}</p>
+  <!-- Adjustment Form -->
+  <form method="post" class="space-y-5">
+    {% csrf_token %}
+    <!-- Hidden fields wired to Alpine state -->
+    <input type="hidden" name="adjustment_type" :value="adjType">
+    <input type="hidden" name="quantity" :value="qty">
+    <input type="hidden" name="reason" :value="reason">
+
+    <!-- Type Toggle -->
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+      <p class="text-sm font-semibold text-gray-700 mb-3">Adjustment Type</p>
+      <div class="grid grid-cols-2 gap-3">
+        <button type="button" @click="adjType = 'add'"
+                :class="adjType === 'add'
+                  ? 'bg-green-600 text-white border-green-600 shadow-md'
+                  : 'bg-white text-green-700 border-green-200 hover:border-green-400'"
+                class="py-3 rounded-xl border-2 font-semibold text-sm transition-all flex items-center justify-center gap-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+          </svg>
+          Add Stock
+        </button>
+        <button type="button" @click="adjType = 'remove'"
+                :class="adjType === 'remove'
+                  ? 'bg-red-600 text-white border-red-600 shadow-md'
+                  : 'bg-white text-red-700 border-red-200 hover:border-red-400'"
+                class="py-3 rounded-xl border-2 font-semibold text-sm transition-all flex items-center justify-center gap-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/>
+          </svg>
+          Remove Stock
+        </button>
+      </div>
     </div>
 
-    <!-- Current Stock Info -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-        <h2 class="text-lg font-semibold text-gray-800 mb-4">Current Stock Information</h2>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div class="bg-gray-50 rounded-lg p-4">
-                <p class="text-sm text-gray-500">Medicine</p>
-                <p class="font-semibold text-gray-800">{{ stock.medicine.name }}</p>
-            </div>
-            <div class="bg-gray-50 rounded-lg p-4">
-                <p class="text-sm text-gray-500">Current Quantity</p>
-                <p class="text-2xl font-bold {% if stock.quantity <= stock.reorder_level %}text-red-600{% else %}text-green-600{% endif %}">
-                    {{ stock.quantity }}
-                </p>
-            </div>
-            <div class="bg-gray-50 rounded-lg p-4">
-                <p class="text-sm text-gray-500">Reorder Level</p>
-                <p class="font-semibold text-gray-800">{{ stock.reorder_level }}</p>
-            </div>
-            <div class="bg-gray-50 rounded-lg p-4">
-                <p class="text-sm text-gray-500">Batch Number</p>
-                <p class="font-semibold text-gray-800">{{ stock.batch_number }}</p>
-            </div>
-        </div>
+    <!-- Quantity -->
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+      <label class="block text-sm font-semibold text-gray-700 mb-2">
+        Quantity to <span x-text="adjType === 'add' ? 'Add' : 'Remove'"></span>
+      </label>
+      <div class="flex items-center gap-3">
+        <button type="button" @click="qty = Math.max(0, (parseInt(qty)||0) - 1)"
+                class="w-10 h-10 rounded-xl bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-700 font-bold text-lg transition-colors">−</button>
+        <input type="number" x-model="qty" min="1"
+               :max="adjType === 'remove' ? currentQty : 999999"
+               class="flex-1 text-center text-2xl font-bold py-2 border-2 rounded-xl focus:outline-none
+                      transition-colors"
+               :class="adjType === 'add' ? 'border-green-200 focus:border-green-400 text-green-700'
+                                         : 'border-red-200 focus:border-red-400 text-red-700'">
+        <button type="button" @click="qty = (parseInt(qty)||0) + 1"
+                class="w-10 h-10 rounded-xl bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-700 font-bold text-lg transition-colors">+</button>
+      </div>
+      <p x-show="adjType === 'remove' && (parseInt(qty)||0) > currentQty"
+         class="mt-2 text-sm text-red-500 font-medium">
+        Cannot remove more than current stock ({{ stock.quantity }}).
+      </p>
     </div>
 
-    <!-- Adjustment Form -->
-    <form method="post" class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-6">
-        {% csrf_token %}
-
-        {% if form.non_field_errors %}
-        <div class="p-4 bg-red-50 border border-red-200 rounded-lg">
-            <div class="flex items-center">
-                <svg class="w-5 h-5 text-red-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-                <span class="text-red-700">{{ form.non_field_errors }}</span>
-            </div>
-        </div>
-        {% endif %}
-
-        <!-- Adjustment Type -->
-        <div>
-            <label for="id_adjustment_type" class="block text-sm font-medium text-gray-700 mb-1">Adjustment Type *</label>
-            {{ form.adjustment_type }}
-            {% if form.adjustment_type.errors %}
-            <p class="mt-1 text-sm text-red-600">{{ form.adjustment_type.errors.0 }}</p>
-            {% endif %}
-        </div>
-
-        <!-- Quantity -->
-        <div>
-            <label for="id_quantity" class="block text-sm font-medium text-gray-700 mb-1">Quantity to Add/Remove *</label>
-            {{ form.quantity }}
-            <p class="mt-1 text-xs text-gray-500">Enter the amount to add or remove from current stock</p>
-            {% if form.quantity.errors %}
-            <p class="mt-1 text-sm text-red-600">{{ form.quantity.errors.0 }}</p>
-            {% endif %}
-        </div>
-
-        <!-- Reason -->
-        <div>
-            <label for="id_reason" class="block text-sm font-medium text-gray-700 mb-1">Reason *</label>
-            {{ form.reason }}
-            <p class="mt-1 text-xs text-gray-500">e.g., Damaged items, Stock count correction, Received shipment, Expired items removed</p>
-            {% if form.reason.errors %}
-            <p class="mt-1 text-sm text-red-600">{{ form.reason.errors.0 }}</p>
-            {% endif %}
-        </div>
-
-        <!-- Preview -->
-        <div class="bg-yellow-50 rounded-lg p-4" x-data="{
-            adjustType: '{{ form.adjustment_type.value|default:'add' }}',
-            qty: 0,
-            currentQty: {{ stock.quantity }}
-        }">
-            <h3 class="font-medium text-yellow-800 mb-2">Adjustment Preview</h3>
-            <div class="flex items-center space-x-4 text-sm">
-                <span class="text-yellow-700">Current: <strong>{{ stock.quantity }}</strong></span>
-                <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
-                </svg>
-                <span class="text-yellow-700">After adjustment: Calculated on submit</span>
-            </div>
-        </div>
-
-        <!-- Actions -->
-        <div class="flex items-center justify-end space-x-4 pt-4 border-t border-gray-100">
-            <a href="{% url 'pharmacy:stock' %}" class="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                Cancel
-            </a>
-            <button type="submit" class="px-6 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium">
-                Apply Adjustment
-            </button>
-        </div>
-    </form>
-
-    <!-- Recent Transactions -->
-    {% if recent_transactions %}
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100">
-        <div class="px-6 py-4 border-b border-gray-100">
-            <h2 class="text-lg font-semibold text-gray-800">Recent Transactions</h2>
-        </div>
-        <div class="divide-y divide-gray-100">
-            {% for txn in recent_transactions %}
-            <div class="px-6 py-3 flex items-center justify-between">
-                <div class="flex items-center space-x-3">
-                    <div class="w-8 h-8 rounded-full flex items-center justify-center {% if txn.transaction_type == 'in' %}bg-green-100{% else %}bg-red-100{% endif %}">
-                        {% if txn.transaction_type == 'in' %}
-                        <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                        </svg>
-                        {% else %}
-                        <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/>
-                        </svg>
-                        {% endif %}
-                    </div>
-                    <div>
-                        <p class="text-sm font-medium text-gray-800">
-                            {% if txn.transaction_type == 'in' %}+{% else %}-{% endif %}{{ txn.quantity }}
-                        </p>
-                        <p class="text-xs text-gray-500">{{ txn.notes|default:txn.reference }}</p>
-                    </div>
-                </div>
-                <p class="text-xs text-gray-500">{{ txn.created_at|date:"M d, H:i" }}</p>
-            </div>
-            {% endfor %}
-        </div>
+    <!-- Reason -->
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+      <label class="block text-sm font-semibold text-gray-700 mb-2">Reason for Adjustment <span class="text-red-500">*</span></label>
+      <div class="flex flex-wrap gap-2 mb-3">
+        {% for r in "Received shipment,Damaged items,Stock count correction,Expired items removed,Returned to supplier,Internal use,Other"|split:"," %}
+        <button type="button" @click="reason = '{{ r }}'"
+                :class="reason === '{{ r }}' ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-gray-600 border-gray-200 hover:border-indigo-300'"
+                class="px-3 py-1.5 rounded-full text-xs font-medium border transition-all">
+          {{ r }}
+        </button>
+        {% endfor %}
+      </div>
+      <textarea x-model="reason" rows="2" placeholder="Or type a custom reason..."
+                class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 resize-none"></textarea>
     </div>
-    {% endif %}
+
+    <!-- Preview -->
+    <div class="rounded-2xl border-2 p-4 transition-all"
+         :class="adjType === 'add' ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'">
+      <p class="text-sm font-semibold mb-2" :class="adjType === 'add' ? 'text-green-800' : 'text-red-800'">
+        Adjustment Preview
+      </p>
+      <div class="flex items-center gap-4 text-sm">
+        <span class="font-medium text-gray-600">Current: <strong>{{ stock.quantity }}</strong></span>
+        <span :class="adjType === 'add' ? 'text-green-700' : 'text-red-700'" class="font-bold text-lg"
+              x-text="adjType === 'add' ? '+' + (parseInt(qty)||0) : '-' + (parseInt(qty)||0)"></span>
+        <span class="font-medium text-gray-600">= <strong x-text="newQty"></strong></span>
+      </div>
+      <p class="mt-1 text-xs text-gray-500" x-show="reason" x-text="'Reason: ' + reason"></p>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex items-center justify-end gap-3">
+      <a href="{% url 'pharmacy:stock' %}"
+         class="px-5 py-2.5 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors font-medium text-sm">
+        Cancel
+      </a>
+      <button type="submit"
+              :disabled="!isValid"
+              :class="isValid
+                ? (adjType === 'add' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700')
+                : 'bg-gray-300 cursor-not-allowed'"
+              class="px-6 py-2.5 text-white rounded-xl font-semibold text-sm transition-all shadow-sm">
+        <span x-text="adjType === 'add' ? 'Add Stock' : 'Remove Stock'"></span>
+      </button>
+    </div>
+  </form>
+
+  <!-- Recent Transactions -->
+  {% if recent_transactions %}
+  <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+    <div class="px-5 py-4 border-b border-gray-100">
+      <h2 class="text-sm font-semibold text-gray-700">Recent Transactions for this Batch</h2>
+    </div>
+    <div class="divide-y divide-gray-50">
+      {% for txn in recent_transactions %}
+      <div class="px-5 py-3 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-full flex items-center justify-center
+            {% if txn.transaction_type == 'in' %}bg-green-100{% else %}bg-red-100{% endif %}">
+            {% if txn.transaction_type == 'in' %}
+            <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            {% else %}
+            <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/>
+            </svg>
+            {% endif %}
+          </div>
+          <div>
+            <p class="text-sm font-medium text-gray-800">
+              {% if txn.transaction_type == 'in' %}+{% else %}−{% endif %}{{ txn.quantity }}
+            </p>
+            <p class="text-xs text-gray-400">{{ txn.notes|default:txn.reference }}</p>
+          </div>
+        </div>
+        <p class="text-xs text-gray-400">{{ txn.created_at|date:"d M H:i" }}</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
 </div>
 {% endblock %}

@@ -12,15 +12,13 @@ class PatientRegistrationForm(forms.ModelForm):
     """Form to register a new patient."""
 
     national_id = forms.CharField(
-        max_length=14,
-        min_length=14,
+        max_length=20,
+        min_length=4,
         required=True,
-        help_text='National ID number (exactly 14 characters)',
+        help_text='Mauritius NIC number (e.g. A123456789012)',
         widget=forms.TextInput(attrs={
-            'maxlength': '14',
-            'minlength': '14',
-            'pattern': r'\d{14}',
-            'title': 'Must be exactly 14 digits',
+            'maxlength': '20',
+            'placeholder': 'NIC number',
         }),
     )
     blood_group = forms.ChoiceField(choices=[('', 'Select Blood Group')] + list(Patient.BLOOD_GROUPS), required=False)
@@ -71,15 +69,16 @@ class PatientRegistrationForm(forms.ModelForm):
             })
 
     def clean_national_id(self):
-        """Validate that national_id is exactly 14 digits and unique."""
-        national_id = self.cleaned_data.get('national_id', '').strip()
+        """Validate that national_id is unique."""
+        national_id = self.cleaned_data.get('national_id', '').strip().upper()
         if national_id:
-            if len(national_id) != 14:
-                raise forms.ValidationError('National ID must be exactly 14 characters.')
-            if not national_id.isdigit():
-                raise forms.ValidationError('National ID must contain digits only.')
-            if Patient.objects.filter(national_id=national_id).exists():
-                raise forms.ValidationError('A patient with this National ID already exists.')
+            qs = Patient.objects.filter(national_id__iexact=national_id)
+            # On edit, exclude self
+            instance_pk = getattr(getattr(self, 'instance', None), 'pk', None)
+            if instance_pk:
+                qs = qs.exclude(user_id=instance_pk)
+            if qs.exists():
+                raise forms.ValidationError('A patient with this NIC already exists.')
         return national_id
 
     def save(self, commit=True):

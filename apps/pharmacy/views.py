@@ -8,6 +8,7 @@ from django.utils import timezone
 from django.http import JsonResponse
 from django.db.models import F, Sum, Count, Q
 from datetime import timedelta
+import json
 
 from .models import Medicine, MedicineStock, MedicineCategory, StockTransaction
 from .forms import MedicineForm, MedicineStockForm, StockEditForm, StockAdjustmentForm, MedicineCategoryForm
@@ -239,16 +240,20 @@ def stock_management(request):
 
     today = timezone.now().date()
 
-    stocks = MedicineStock.objects.select_related('medicine').order_by('expiry_date')
+    all_stocks = MedicineStock.objects.select_related('medicine__category')
 
-    # Calculate statistics
-    total_items = stocks.count()
-    in_stock = stocks.filter(quantity__gt=F('reorder_level')).count()
-    low_stock = stocks.filter(quantity__gt=0, quantity__lte=F('reorder_level')).count()
-    out_of_stock = stocks.filter(quantity=0).count()
+    # Calculate statistics on the full set
+    total_items  = all_stocks.count()
+    in_stock     = all_stocks.filter(quantity__gt=F('reorder_level')).count()
+    low_stock    = all_stocks.filter(quantity__gt=0, quantity__lte=F('reorder_level')).count()
+    out_of_stock = all_stocks.filter(quantity=0).count()
 
-    # Filter options
-    status_filter = request.GET.get('status')
+    # Filters
+    status_filter = request.GET.get('status', '')
+    search_q      = request.GET.get('q', '').strip()
+
+    stocks = all_stocks.order_by('expiry_date')
+
     if status_filter == 'low':
         stocks = stocks.filter(quantity__gt=0, quantity__lte=F('reorder_level'))
     elif status_filter == 'out':
@@ -259,15 +264,29 @@ def stock_management(request):
             expiry_date__gt=today
         )
 
+    if search_q:
+        stocks = stocks.filter(
+            Q(medicine__name__icontains=search_q) |
+            Q(medicine__generic_name__icontains=search_q) |
+            Q(batch_number__icontains=search_q)
+        )
+
+    # Chart data for mini analytics
+    stock_chart_labels = json.dumps(['In Stock', 'Low Stock', 'Out of Stock'])
+    stock_chart_data   = json.dumps([in_stock, low_stock, out_of_stock])
+
     return render(request, 'pharmacy/stock.html', {
         'stocks': stocks,
-        'stock_items': stocks,  # Alias for template compatibility
+        'stock_items': stocks,
         'total_items': total_items,
         'in_stock': in_stock,
         'low_stock': low_stock,
         'out_of_stock': out_of_stock,
         'today': today,
         'status_filter': status_filter,
+        'search_q': search_q,
+        'stock_chart_labels': stock_chart_labels,
+        'stock_chart_data': stock_chart_data,
     })
 
 
@@ -353,25 +372,29 @@ def adjust_stock(request, pk):
     stock = get_object_or_404(MedicineStock, pk=pk)
 
     if request.method == 'POST':
-        form = StockAdjustmentForm(request.POST)
-        if form.is_valid():
-            adjustment_type = form.cleaned_data['adjustment_type']
-            quantity = form.cleaned_data['quantity']
-            reason = form.cleaned_data['reason']
+        adjustment_type = request.POST.get('adjustment_type', 'add')
+        reason          = request.POST.get('reason', '').strip()
+        try:
+            quantity = int(request.POST.get('quantity', 0))
+        except (ValueError, TypeError):
+            quantity = 0
 
+        if quantity <= 0:
+            messages.error(request, 'Please enter a valid quantity greater than zero.')
+        elif not reason:
+            messages.error(request, 'Please provide a reason for the adjustment.')
+        elif adjustment_type == 'remove' and quantity > stock.quantity:
+            messages.error(request, f'Cannot remove {quantity} items — only {stock.quantity} available.')
+        else:
             if adjustment_type == 'add':
                 stock.quantity += quantity
                 transaction_type = 'in'
             else:
-                if quantity > stock.quantity:
-                    messages.error(request, f'Cannot remove {quantity} items. Only {stock.quantity} available.')
-                    return redirect('pharmacy:adjust_stock', pk=pk)
                 stock.quantity -= quantity
                 transaction_type = 'out'
 
             stock.save()
 
-            # Create transaction record
             StockTransaction.objects.create(
                 stock=stock,
                 transaction_type=transaction_type,
@@ -381,14 +404,15 @@ def adjust_stock(request, pk):
                 performed_by=request.user
             )
 
-            messages.success(request, f'Stock adjusted for {stock.medicine.name}.')
+            messages.success(request, f'Stock {"added to" if adjustment_type == "add" else "removed from"} {stock.medicine.name}: {quantity} units.')
             return redirect('pharmacy:stock')
-    else:
-        form = StockAdjustmentForm()
+    recent_transactions = StockTransaction.objects.filter(
+        stock=stock
+    ).order_by('-created_at')[:8]
 
     return render(request, 'pharmacy/adjust_stock.html', {
-        'form': form,
         'stock': stock,
+        'recent_transactions': recent_transactions,
     })
 
 
@@ -535,3 +559,118 @@ def medicine_search_api(request):
     } for m in medicines]
 
     return JsonResponse({'results': results})
+
+
+@login_required
+def stock_forecast(request):
+    """ML-powered stock demand forecast for pharmacy."""
+    if not (request.user.is_pharmacist or request.user.is_admin):
+        messages.error(request, 'Access denied.')
+        return redirect('accounts:dashboard')
+
+    try:
+        from apps.ai_services.services import get_ml_stock_forecast
+        forecasts = get_ml_stock_forecast()
+    except Exception:
+        forecasts = []
+
+    # Top 10 by predicted demand for chart
+    chart_data = sorted(forecasts, key=lambda f: f.get('predicted_demand', 0), reverse=True)[:10]
+
+    return render(request, 'pharmacy/forecast.html', {
+        'forecasts': forecasts,
+        'chart_labels': json.dumps([f['medicine_name'] for f in chart_data]),
+        'chart_demand': json.dumps([round(f.get('predicted_demand', 0), 1) for f in chart_data]),
+        'chart_stock':  json.dumps([f.get('current_stock', 0) for f in chart_data]),
+    })
+
+
+@login_required
+def pharmacy_analytics(request):
+    """Visual analytics dashboard for pharmacy."""
+    if not (request.user.is_pharmacist or request.user.is_admin):
+        messages.error(request, 'Access denied.')
+        return redirect('accounts:dashboard')
+
+    today = timezone.now().date()
+    month_ago = today - timedelta(days=30)
+    ninety_ago = today - timedelta(days=90)
+
+    # Top 15 most dispensed medicines (by stock-out transactions)
+    top_dispensed = StockTransaction.objects.filter(
+        transaction_type='out', created_at__date__gte=month_ago
+    ).values('stock__medicine__name').annotate(
+        total=Sum('quantity')
+    ).order_by('-total')[:15]
+
+    # Daily dispensing volume (last 30 days)
+    daily_dispense = []
+    for i in range(29, -1, -1):
+        day = today - timedelta(days=i)
+        qty = StockTransaction.objects.filter(
+            transaction_type='out', created_at__date=day
+        ).aggregate(total=Sum('quantity'))['total'] or 0
+        daily_dispense.append({'date': day.strftime('%d %b'), 'qty': qty})
+
+    # Stock health counts
+    in_stock   = MedicineStock.objects.filter(quantity__gt=F('reorder_level')).count()
+    low_stock  = MedicineStock.objects.filter(quantity__gt=0, quantity__lte=F('reorder_level')).count()
+    out_stock  = MedicineStock.objects.filter(quantity=0).count()
+
+    # Category-wise dispensing
+    cat_dispense = StockTransaction.objects.filter(
+        transaction_type='out', created_at__date__gte=month_ago
+    ).values('stock__medicine__category__name').annotate(
+        total=Sum('quantity')
+    ).order_by('-total')[:8]
+
+    # Expiry countdown buckets
+    exp_30 = MedicineStock.objects.filter(expiry_date__gt=today, expiry_date__lte=today + timedelta(days=30), quantity__gt=0).count()
+    exp_60 = MedicineStock.objects.filter(expiry_date__gt=today + timedelta(days=30), expiry_date__lte=today + timedelta(days=60), quantity__gt=0).count()
+    exp_90 = MedicineStock.objects.filter(expiry_date__gt=today + timedelta(days=60), expiry_date__lte=today + timedelta(days=90), quantity__gt=0).count()
+
+    # AI demand forecasts for insight panel
+    try:
+        from apps.ai_services.services import get_ml_stock_forecast
+        forecasts = get_ml_stock_forecast()
+    except Exception:
+        forecasts = []
+
+    critical_meds = [f for f in forecasts if f.get('risk_level') in ('critical', 'high')][:5]
+
+    ai_insights = []
+    total_low_out = low_stock + out_stock
+    if total_low_out > 0:
+        ai_insights.append({
+            'type': 'warning',
+            'text': f'{total_low_out} medicine batch{"es" if total_low_out != 1 else ""} are at or below reorder level — consider restocking.',
+        })
+    if exp_30 > 0:
+        ai_insights.append({
+            'type': 'danger',
+            'text': f'{exp_30} batch{"es" if exp_30 != 1 else ""} expire within 30 days. Review and dispose of expired stock promptly.',
+        })
+    for f in critical_meds:
+        ai_insights.append({
+            'type': 'critical' if f.get('risk_level') == 'critical' else 'high',
+            'text': f'{f["medicine_name"]}: predicted demand {round(f.get("predicted_demand", 0))} units in 30 days — only {f.get("current_stock", 0)} in stock.',
+        })
+    if not ai_insights:
+        ai_insights.append({'type': 'ok', 'text': 'All stock levels are healthy. No immediate action required.'})
+
+    return render(request, 'pharmacy/analytics.html', {
+        'top_dispensed': list(top_dispensed),
+        'top_labels':   json.dumps([d['stock__medicine__name'] or 'Unknown' for d in top_dispensed]),
+        'top_values':   json.dumps([d['total'] for d in top_dispensed]),
+        'daily_labels': json.dumps([d['date'] for d in daily_dispense]),
+        'daily_values': json.dumps([d['qty'] for d in daily_dispense]),
+        'in_stock':  in_stock,
+        'low_stock': low_stock,
+        'out_stock': out_stock,
+        'cat_labels': json.dumps([c['stock__medicine__category__name'] or 'Unknown' for c in cat_dispense]),
+        'cat_values': json.dumps([c['total'] for c in cat_dispense]),
+        'exp_30': exp_30, 'exp_60': exp_60, 'exp_90': exp_90,
+        'today': today,
+        'ai_insights': ai_insights,
+        'critical_meds': critical_meds,
+    })

@@ -25,11 +25,13 @@ urlpatterns = [
 
     # Admin user management
     path('users/', views.UserListView.as_view(), name='user_list'),
-    path('users/create/', views.UserCreateView.as_view(), name='user_create'),
-    path('users/<int:pk>/edit/', views.UserUpdateView.as_view(), name='user_edit'),
+    path('users/create/', views.user_create_view, name='user_create'),
+    path('users/<int:pk>/edit/', views.user_update_view, name='user_edit'),
 
     # Department management
     path('departments/', views.DepartmentListView.as_view(), name='department_list'),
+    path('departments/<int:dept_id>/', views.manage_department, name='manage_department'),
+    path('departments/<int:dept_id>/assign-doctor/', views.assign_doctor_to_department, name='assign_doctor'),
 
     # Audit logs
     path('audit-logs/', views.AuditLogListView.as_view(), name='audit_logs'),

@@ -88,6 +88,42 @@ def book_for_patient(request):
     })
 
 
+@login_required
+def doctors_by_department_api(request):
+    """JSON API: return doctors in a given department with today's availability."""
+    dept_id = request.GET.get('dept_id', '')
+    today = timezone.now().date()
+    day_of_week = today.weekday()  # 0=Monday
+
+    doctors_qs = User.objects.filter(role=User.Role.DOCTOR, is_active=True).select_related('doctor_profile__department')
+    if dept_id:
+        doctors_qs = doctors_qs.filter(doctor_profile__department_id=dept_id)
+
+    result = []
+    for doc in doctors_qs:
+        profile = getattr(doc, 'doctor_profile', None)
+        schedule = doc.schedules.filter(day_of_week=day_of_week, is_available=True).first()
+        today_count = Appointment.objects.filter(
+            doctor=doc, scheduled_date=today
+        ).exclude(status__in=['cancelled', 'no_show']).count()
+        max_pts = profile.max_patients_per_day if profile else 30
+        load_pct = min(round(today_count / max_pts * 100), 100) if max_pts else 0
+
+        result.append({
+            'id': doc.id,
+            'name': f"Dr. {doc.get_full_name()}",
+            'specialization': profile.specialization if profile else '',
+            'department': profile.department.name if profile and profile.department else '',
+            'available_today': schedule is not None,
+            'today_bookings': today_count,
+            'max_patients': max_pts,
+            'load_pct': load_pct,
+        })
+
+    result.sort(key=lambda d: (not d['available_today'], d['load_pct']))
+    return JsonResponse({'doctors': result})
+
+
 class MyAppointmentsView(LoginRequiredMixin, ListView):
     """View patient's appointments."""
 

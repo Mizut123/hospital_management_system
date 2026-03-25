@@ -88,16 +88,29 @@ class RecordDetailView(LoginRequiredMixin, DetailView):
         record = super().get_object(queryset)
         user = self.request.user
 
-        # Access control: Only allow access to own records or if doctor/admin
-        if not (user.is_admin or user.is_doctor or
-                record.patient_id == user.id or
-                (hasattr(user, 'patient') and record.patient_id == user.patient.id)):
-            security_logger.warning(
-                f"Unauthorized record access attempt: user={user.email}, record={record.pk}"
-            )
-            raise PermissionDenied("You don't have permission to view this record.")
+        if user.is_admin:
+            return record
 
-        return record
+        # Doctors: only their own patients (appointment-based)
+        if user.is_doctor:
+            patient_ids = Appointment.objects.filter(
+                doctor=user
+            ).values_list('patient_id', flat=True)
+            if record.patient_id not in patient_ids and record.doctor_id != user.id:
+                security_logger.warning(
+                    f"Unauthorized record access attempt: user={user.email}, record={record.pk}"
+                )
+                raise PermissionDenied("You don't have permission to view this patient's record.")
+            return record
+
+        # Patients: only own records
+        if record.patient_id == user.id:
+            return record
+
+        security_logger.warning(
+            f"Unauthorized record access attempt: user={user.email}, record={record.pk}"
+        )
+        raise PermissionDenied("You don't have permission to view this record.")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

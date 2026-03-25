@@ -7,13 +7,13 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib import messages
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, TemplateView
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy  # noqa: kept for potential future CBV use
 from django.db.models import Count, Q, F
 from django.utils import timezone
 from datetime import timedelta
 
 from .models import User, Department, DoctorProfile, AuditLog
-from .forms import LoginForm, UserRegistrationForm, UserProfileForm, AdminUserForm
+from .forms import LoginForm, UserRegistrationForm, UserProfileForm, AdminUserForm, DoctorProfileForm
 
 
 def login_view(request):
@@ -365,38 +365,194 @@ class UserListView(LoginRequiredMixin, AdminRequiredMixin, ListView):
         return context
 
 
-class UserCreateView(LoginRequiredMixin, AdminRequiredMixin, CreateView):
-    """Create a new user."""
+@login_required
+def user_create_view(request):
+    """Create a new user, with optional doctor profile fields."""
+    if not request.user.is_admin:
+        messages.error(request, 'Access denied.')
+        return redirect('accounts:dashboard')
 
-    model = User
-    form_class = AdminUserForm
-    template_name = 'accounts/user_form.html'
-    success_url = reverse_lazy('accounts:user_list')
+    form = AdminUserForm(request.POST or None)
+    doctor_form = DoctorProfileForm(request.POST or None)
 
-    def form_valid(self, form):
-        messages.success(self.request, 'User created successfully.')
-        return super().form_valid(form)
+    if request.method == 'POST' and form.is_valid():
+        user = form.save(commit=False)
+        if not user.pk and not form.cleaned_data.get('password'):
+            messages.error(request, 'A password is required for new users.')
+            return render(request, 'accounts/user_form.html', {'form': form, 'doctor_form': doctor_form})
+        user.save()
+
+        # Create DoctorProfile when role is doctor
+        if user.role == User.Role.DOCTOR and doctor_form.is_valid():
+            cd = doctor_form.cleaned_data
+            DoctorProfile.objects.update_or_create(
+                user=user,
+                defaults={
+                    'department': cd.get('department'),
+                    'specialization': cd.get('specialization') or 'General Medicine',
+                    'qualification': cd.get('qualification') or 'MBBS',
+                    'license_number': cd.get('license_number') or f'LIC-{user.pk}',
+                    'experience_years': cd.get('experience_years') or 0,
+                }
+            )
+
+        messages.success(request, 'User created successfully.')
+        return redirect('accounts:user_list')
+
+    return render(request, 'accounts/user_form.html', {'form': form, 'doctor_form': doctor_form})
 
 
-class UserUpdateView(LoginRequiredMixin, AdminRequiredMixin, UpdateView):
-    """Update an existing user."""
+@login_required
+def user_update_view(request, pk):
+    """Update an existing user, with optional doctor profile fields."""
+    if not request.user.is_admin:
+        messages.error(request, 'Access denied.')
+        return redirect('accounts:dashboard')
 
-    model = User
-    form_class = AdminUserForm
-    template_name = 'accounts/user_form.html'
-    success_url = reverse_lazy('accounts:user_list')
+    user_obj = get_object_or_404(User, pk=pk)
+    doctor_profile = getattr(user_obj, 'doctor_profile', None)
 
-    def form_valid(self, form):
-        messages.success(self.request, 'User updated successfully.')
-        return super().form_valid(form)
+    # Pre-populate doctor form from existing profile
+    doctor_initial = {}
+    if doctor_profile:
+        doctor_initial = {
+            'department': doctor_profile.department,
+            'specialization': doctor_profile.specialization,
+            'qualification': doctor_profile.qualification,
+            'license_number': doctor_profile.license_number,
+            'experience_years': doctor_profile.experience_years,
+        }
+
+    form = AdminUserForm(request.POST or None, instance=user_obj)
+    doctor_form = DoctorProfileForm(request.POST or None, initial=doctor_initial)
+
+    if request.method == 'POST' and form.is_valid():
+        user_obj = form.save()
+
+        if user_obj.role == User.Role.DOCTOR and doctor_form.is_valid():
+            cd = doctor_form.cleaned_data
+            DoctorProfile.objects.update_or_create(
+                user=user_obj,
+                defaults={
+                    'department': cd.get('department'),
+                    'specialization': cd.get('specialization') or 'General Medicine',
+                    'qualification': cd.get('qualification') or 'MBBS',
+                    'license_number': cd.get('license_number') or f'LIC-{user_obj.pk}',
+                    'experience_years': cd.get('experience_years') or 0,
+                }
+            )
+
+        messages.success(request, 'User updated successfully.')
+        return redirect('accounts:user_list')
+
+    return render(request, 'accounts/user_form.html', {
+        'form': form,
+        'doctor_form': doctor_form,
+        'object': user_obj,
+    })
 
 
 class DepartmentListView(LoginRequiredMixin, AdminRequiredMixin, ListView):
-    """List all departments."""
+    """List all departments with doctor count validation."""
 
     model = Department
     template_name = 'accounts/department_list.html'
     context_object_name = 'departments'
+
+    def get_queryset(self):
+        return Department.objects.annotate(
+            doctor_count=Count('doctors', filter=Q(doctors__user__is_active=True))
+        ).order_by('name')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Flag departments that have no active doctors
+        context['empty_depts'] = [d for d in context['departments'] if d.doctor_count == 0]
+        return context
+
+
+@login_required
+def assign_doctor_to_department(request, dept_id):
+    """Assign an existing doctor to a department."""
+    if not request.user.is_admin:
+        messages.error(request, 'Access denied.')
+        return redirect('accounts:dashboard')
+
+    department = get_object_or_404(Department, pk=dept_id)
+
+    if request.method == 'POST':
+        doctor_id = request.POST.get('doctor_id')
+        set_as_head = request.POST.get('set_as_head') == '1'
+        if doctor_id:
+            profile = get_object_or_404(DoctorProfile, pk=doctor_id)
+            profile.department = department
+            profile.save()
+            if set_as_head:
+                department.head_doctor = profile.user
+                department.save()
+            messages.success(request, f'Dr. {profile.user.get_full_name()} has been assigned to {department.name}.')
+        return redirect('accounts:manage_department', dept_id=department.pk)
+
+    all_doctors = list(
+        DoctorProfile.objects.select_related('user', 'department').order_by(
+            'user__first_name', 'user__last_name'
+        )
+    )
+    return render(request, 'accounts/assign_doctor.html', {
+        'department': department,
+        'available_doctors': all_doctors,
+    })
+
+
+@login_required
+def manage_department(request, dept_id):
+    """Manage a department — view doctors, set head, remove doctors."""
+    if not request.user.is_admin:
+        messages.error(request, 'Access denied.')
+        return redirect('accounts:dashboard')
+
+    department = get_object_or_404(Department, pk=dept_id)
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+
+        if action == 'set_head':
+            head_id = request.POST.get('head_id')
+            if head_id:
+                head_user = get_object_or_404(User, pk=head_id, role=User.Role.DOCTOR)
+                department.head_doctor = head_user
+                department.save()
+                messages.success(request, f'Dr. {head_user.get_full_name()} set as department head.')
+            else:
+                department.head_doctor = None
+                department.save()
+                messages.success(request, 'Department head cleared.')
+
+        elif action == 'remove_doctor':
+            profile_id = request.POST.get('profile_id')
+            if profile_id:
+                profile = get_object_or_404(DoctorProfile, pk=profile_id, department=department)
+                # Clear head if this doctor was head
+                if department.head_doctor == profile.user:
+                    department.head_doctor = None
+                    department.save()
+                profile.department = None
+                profile.save()
+                messages.success(request, f'Dr. {profile.user.get_full_name()} removed from {department.name}.')
+
+        return redirect('accounts:manage_department', dept_id=department.pk)
+
+    dept_doctors = list(
+        DoctorProfile.objects.filter(department=department).select_related('user').order_by(
+            'user__first_name', 'user__last_name'
+        )
+    )
+    # Refresh department from DB after any saves
+    department.refresh_from_db()
+    return render(request, 'accounts/manage_department.html', {
+        'department': department,
+        'dept_doctors': dept_doctors,
+    })
 
 
 class AuditLogListView(LoginRequiredMixin, AdminRequiredMixin, ListView):

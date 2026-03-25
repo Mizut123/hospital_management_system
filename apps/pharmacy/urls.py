@@ -27,6 +27,10 @@ urlpatterns = [
     # Alerts
     path('alerts/', views.stock_alerts, name='alerts'),
 
+    # ML & Analytics
+    path('forecast/', views.stock_forecast, name='forecast'),
+    path('analytics/', views.pharmacy_analytics, name='analytics'),
+
     # API Endpoints
     path('api/stock-check/<int:medicine_id>/', views.check_stock_api, name='check_stock_api'),
     path('api/medicine-search/', views.medicine_search_api, name='medicine_search_api'),

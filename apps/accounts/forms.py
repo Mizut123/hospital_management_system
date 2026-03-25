@@ -7,6 +7,8 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
+INPUT_CLASS = 'w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200'
+
 
 class LoginForm(AuthenticationForm):
     """Custom login form with styled fields."""
@@ -160,3 +162,41 @@ class AdminUserForm(forms.ModelForm):
         if commit:
             user.save()
         return user
+
+
+class DoctorProfileForm(forms.Form):
+    """Extra fields collected when creating/editing a doctor account."""
+
+    department = forms.ModelChoiceField(
+        queryset=None,
+        required=False,
+        empty_label='— Select department —',
+        widget=forms.Select(attrs={'class': INPUT_CLASS}),
+    )
+    specialization = forms.CharField(
+        max_length=100,
+        required=False,
+        widget=forms.TextInput(attrs={'class': INPUT_CLASS, 'placeholder': 'e.g. Cardiology, General Medicine'}),
+    )
+    qualification = forms.CharField(
+        max_length=200,
+        required=False,
+        widget=forms.TextInput(attrs={'class': INPUT_CLASS, 'placeholder': 'e.g. MBBS, MD'}),
+    )
+    license_number = forms.CharField(
+        max_length=50,
+        required=False,
+        widget=forms.TextInput(attrs={'class': INPUT_CLASS, 'placeholder': 'Medical licence number'}),
+    )
+    experience_years = forms.IntegerField(
+        min_value=0,
+        required=False,
+        initial=0,
+        widget=forms.NumberInput(attrs={'class': INPUT_CLASS}),
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Import inside __init__ to avoid circular import
+        from apps.accounts.models import Department as Dept
+        self.fields['department'].queryset = Dept.objects.filter(is_active=True).order_by('name')

@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Hospital Management System — ERD</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: system-ui, sans-serif; background: #f0f4f8; padding: 24px; }
+  h1 { font-size: 1.4rem; font-weight: 700; color: #1e293b; margin-bottom: 4px; }
+  p  { font-size: .85rem; color: #64748b; margin-bottom: 20px; }
+  .card {
+    background: #fff; border-radius: 12px; padding: 24px;
+    box-shadow: 0 2px 12px rgba(0,0,0,.08);
+    overflow-x: auto;
+  }
+  .mermaid { min-width: 900px; }
+</style>
+</head>
+<body>
+<h1>Hospital Management System — Entity Relationship Diagram</h1>
+<p>25 models across 7 apps &nbsp;·&nbsp; Open in browser, zoom with Ctrl+scroll</p>
+
+<div class="card">
+<div class="mermaid">
+erDiagram
+
+  %% ── ACCOUNTS ──────────────────────────────────────────────────────────────
+  User {
+    int     id PK
+    string  username
+    string  email UK
+    string  role "admin|doctor|receptionist|pharmacist|patient"
+    string  phone
+    date    date_of_birth
+    string  gender
+    text    address
+    image   profile_image
+    datetime created_at
+    datetime updated_at
+  }
+
+  Department {
+    int     id PK
+    string  name
+    text    description
+    int     head_doctor_id FK
+    bool    is_active
+    datetime created_at
+  }
+
+  DoctorProfile {
+    int     id PK
+    int     user_id FK
+    int     department_id FK
+    string  specialization
+    string  qualification
+    string  license_number UK
+    int     experience_years
+    decimal consultation_fee
+    text    bio
+    int     avg_consultation_time
+    int     max_patients_per_day
+  }
+
+  DoctorSchedule {
+    int   id PK
+    int   doctor_id FK
+    int   day_of_week "0=Mon … 6=Sun"
+    time  start_time
+    time  end_time
+    int   max_patients
+    bool  is_available
+  }
+
+  AuditLog {
+    int      id PK
+    int      user_id FK
+    string   action "CREATE|UPDATE|DELETE|LOGIN|LOGOUT|VIEW|EXPORT"
+    string   model_name
+    string   object_id
+    json     changes
+    string   ip_address
+    datetime timestamp
+  }
+
+  %% ── PATIENTS ──────────────────────────────────────────────────────────────
+  Patient {
+    int    id PK
+    int    user_id FK
+    string patient_number UK
+    string national_id UK
+    string blood_group
+    text   allergies
+    text   chronic_conditions
+    string emergency_contact_name
+    string emergency_contact_phone
+    string insurance_provider
+    string insurance_id
+    int    risk_score
+    string risk_level "low|medium|high|critical"
+    text   notes
+    datetime created_at
+    datetime updated_at
+  }
+
+  PatientDocument {
+    int      id PK
+    int      patient_id FK
+    string   title
+    string   document_type
+    file     file
+    text     description
+    int      uploaded_by_id FK
+    datetime uploaded_at
+  }
+
+  %% ── APPOINTMENTS ──────────────────────────────────────────────────────────
+  Appointment {
+    int      id PK
+    int      patient_id FK
+    int      doctor_id FK
+    int      department_id FK
+    int      created_by_id FK
+    date     scheduled_date
+    time     scheduled_time
+    string   appointment_type "REGULAR|FOLLOWUP|EMERGENCY|WALKIN"
+    string   status "SCHEDULED|CONFIRMED|CHECKED_IN|IN_PROGRESS|COMPLETED|CANCELLED|NO_SHOW"
+    text     reason
+    text     notes
+    int      queue_number
+    datetime check_in_time
+    datetime start_time
+    datetime end_time
+    int      estimated_wait
+    bool     ai_priority
+    string   ai_priority_reason
+    datetime created_at
+    datetime updated_at
+  }
+
+  AppointmentSlot {
+    int  id PK
+    int  doctor_id FK
+    date date
+    time start_time
+    time end_time
+    bool is_available
+    int  max_patients
+    int  booked_count
+  }
+
+  %% ── MEDICAL RECORDS ───────────────────────────────────────────────────────
+  MedicalRecord {
+    int      id PK
+    int      patient_id FK
+    int      doctor_id FK
+    int      appointment_id FK
+    date     visit_date
+    text     chief_complaint
+    text     history_of_present_illness
+    json     vital_signs
+    text     physical_examination
+    text     assessment
+    text     plan
+    text     notes
+    date     follow_up_date
+    datetime created_at
+    datetime updated_at
+  }
+
+  Diagnosis {
+    int    id PK
+    int    medical_record_id FK
+    string icd_code
+    string description
+    string severity "mild|moderate|severe|critical"
+    text   notes
+    bool   is_primary
+  }
+
+  Prescription {
+    int      id PK
+    int      patient_id FK
+    int      doctor_id FK
+    int      medical_record_id FK
+    int      dispensed_by_id FK
+    string   status "PENDING|DISPENSED|PARTIALLY_DISPENSED|CANCELLED"
+    text     notes
+    datetime dispensed_at
+    datetime created_at
+    datetime updated_at
+  }
+
+  PrescriptionItem {
+    int    id PK
+    int    prescription_id FK
+    int    medicine_id FK
+    string dosage
+    string frequency
+    string duration
+    int    quantity
+    text   instructions
+    bool   is_dispensed
+  }
+
+  LabTest {
+    int      id PK
+    int      patient_id FK
+    int      doctor_id FK
+    int      medical_record_id FK
+    string   test_name
+    string   test_type
+    string   status "ORDERED|SAMPLE_COLLECTED|PROCESSING|COMPLETED|CANCELLED"
+    json     results
+    text     result_summary
+    bool     is_abnormal
+    text     notes
+    datetime ordered_at
+    datetime completed_at
+  }
+
+  %% ── PHARMACY ──────────────────────────────────────────────────────────────
+  MedicineCategory {
+    int    id PK
+    string name UK
+    text   description
+  }
+
+  Medicine {
+    int    id PK
+    int    category_id FK
+    string name
+    string generic_name
+    string dosage_form "tablet|capsule|syrup|injection|cream|drops|inhaler|other"
+    string strength
+    string manufacturer
+    text   description
+    text   contraindications
+    text   side_effects
+    string storage_instructions
+    bool   requires_prescription
+    bool   is_active
+    datetime created_at
+    datetime updated_at
+  }
+
+  MedicineStock {
+    int      id PK
+    int      medicine_id FK
+    string   batch_number
+    int      quantity
+    decimal  unit_price
+    date     expiry_date
+    date     received_date
+    string   supplier
+    int      reorder_level
+    int      predicted_demand
+    text     notes
+    datetime created_at
+  }
+
+  StockTransaction {
+    int      id PK
+    int      stock_id FK
+    int      performed_by_id FK
+    string   transaction_type "in|out|adjustment|expired"
+    int      quantity
+    string   reference
+    text     notes
+    datetime created_at
+  }
+
+  %% ── AI SERVICES ───────────────────────────────────────────────────────────
+  MLModelVersion {
+    int    id PK
+    int    trained_by_id FK
+    string version UK
+    float  accuracy
+    float  precision
+    float  recall
+    float  f1_score
+    int    training_samples
+    int    num_classes
+    int    feature_count
+    string model_file
+    bool   is_active
+    text   notes
+    datetime trained_at
+  }
+
+  TrainingData {
+    int    id PK
+    int    doctor_id FK
+    int    patient_id FK
+    int    model_version_id FK
+    int    patient_age
+    string patient_gender
+    int    blood_pressure_systolic
+    int    blood_pressure_diastolic
+    int    heart_rate
+    float  temperature
+    int    spo2
+    text   symptoms
+    string predicted_disease
+    float  predicted_confidence
+    string confirmed_disease
+    string icd_code
+    bool   prediction_correct
+    bool   used_for_training
+    datetime created_at
+  }
+
+  PredictionLog {
+    int    id PK
+    int    patient_id FK
+    int    predicted_by_id FK
+    int    model_version_id FK
+    text   symptoms_input
+    int    patient_age
+    string patient_gender
+    string prediction_1
+    float  confidence_1
+    string prediction_2
+    float  confidence_2
+    string prediction_3
+    float  confidence_3
+    bool   feedback_received
+    datetime created_at
+  }
+
+  %% ── NOTIFICATIONS ─────────────────────────────────────────────────────────
+  Notification {
+    int      id PK
+    int      user_id FK
+    string   notification_type "APPOINTMENT|PRESCRIPTION|LAB_RESULT|REMINDER|ALERT|SYSTEM"
+    string   title
+    text     message
+    string   link
+    bool     is_read
+    datetime created_at
+  }
+
+  %% ── RELATIONSHIPS ─────────────────────────────────────────────────────────
+  %% Accounts
+  User           ||--o|  DoctorProfile    : "has profile"
+  User           ||--o{  DoctorSchedule   : "has schedule"
+  User           ||--o{  AuditLog         : "generates"
+  User           ||--o{  Notification     : "receives"
+  Department     ||--o{  DoctorProfile    : "employs"
+  Department     ||--o|  User             : "headed by"
+
+  %% Patients
+  User           ||--o|  Patient          : "is patient"
+  Patient        ||--o{  PatientDocument  : "has documents"
+  User           ||--o{  PatientDocument  : "uploads"
+
+  %% Appointments
+  User           ||--o{  Appointment      : "books (patient)"
+  User           ||--o{  Appointment      : "attends (doctor)"
+  Department     ||--o{  Appointment      : "hosts"
+  User           ||--o{  AppointmentSlot  : "owns slot"
+
+  %% Medical records
+  User           ||--o{  MedicalRecord    : "has records (patient)"
+  User           ||--o{  MedicalRecord    : "writes (doctor)"
+  Appointment    ||--o|  MedicalRecord    : "produces"
+  MedicalRecord  ||--o{  Diagnosis        : "has diagnoses"
+  MedicalRecord  ||--o{  Prescription     : "produces"
+  MedicalRecord  ||--o{  LabTest          : "orders"
+  User           ||--o{  LabTest          : "orders (doctor)"
+  User           ||--o{  LabTest          : "has tests (patient)"
+  User           ||--o{  Prescription     : "receives (patient)"
+  User           ||--o{  Prescription     : "issues (doctor)"
+  User           ||--o{  Prescription     : "dispenses"
+  Prescription   ||--o{  PrescriptionItem : "contains"
+  Medicine       ||--o{  PrescriptionItem : "prescribed as"
+
+  %% Pharmacy
+  MedicineCategory ||--o{  Medicine        : "categorises"
+  Medicine         ||--o{  MedicineStock   : "stocked as"
+  MedicineStock    ||--o{  StockTransaction: "has transactions"
+  User             ||--o{  StockTransaction: "performs"
+
+  %% AI
+  User           ||--o{  MLModelVersion   : "trains"
+  MLModelVersion ||--o{  TrainingData     : "used in"
+  MLModelVersion ||--o{  PredictionLog    : "drives"
+  User           ||--o{  TrainingData     : "confirmed by (doctor)"
+  User           ||--o{  TrainingData     : "relates to (patient)"
+  User           ||--o{  PredictionLog    : "concerns (patient)"
+  User           ||--o{  PredictionLog    : "made by"
+</div>
+</div>
+
+<script>
+  mermaid.initialize({ startOnLoad: true, theme: 'default', er: { diagramPadding: 30, layoutDirection: 'TB', minEntityWidth: 120, minEntityHeight: 75 } });
+</script>
+</body>
+</html>

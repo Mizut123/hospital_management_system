@@ -1,76 +1,142 @@
 {% extends 'base.html' %}
-
 {% block title %}Search Patients - HMS{% endblock %}
-
 {% block page_title %}Search Patients{% endblock %}
 
 {% block content %}
-<div class="space-y-6">
-    <!-- Search Form -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-        <form method="GET" class="space-y-4">
-            <div class="flex items-center space-x-4">
-                <div class="flex-1">
-                    <input type="text" name="q" value="{{ query }}" placeholder="Search by name, patient ID, phone, or email..."
-                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                           autofocus>
-                </div>
-                <button type="submit" class="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                    </svg>
-                </button>
-            </div>
-        </form>
-    </div>
+<div class="space-y-5" x-data="patientSearch()">
 
-    <!-- Results -->
-    {% if query %}
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <div class="px-6 py-4 border-b border-gray-100">
-            <h3 class="text-lg font-semibold text-gray-800">
-                Search Results
-                <span class="text-sm font-normal text-gray-500">({{ patients|length }} found)</span>
-            </h3>
-        </div>
-
-        {% if patients %}
-        <div class="divide-y divide-gray-100">
-            {% for patient in patients %}
-            <a href="{% url 'patients:detail' patient.pk %}" class="block p-4 hover:bg-gray-50 transition-colors">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center">
-                        <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-                            <span class="text-sm font-medium text-blue-600">{{ patient.user.first_name.0 }}{{ patient.user.last_name.0 }}</span>
-                        </div>
-                        <div class="ml-4">
-                            <p class="font-medium text-gray-800">{{ patient.user.get_full_name }}</p>
-                            <p class="text-sm text-gray-500">{{ patient.patient_number }} | {{ patient.user.phone|default:"No phone" }}</p>
-                        </div>
-                    </div>
-                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                    </svg>
-                </div>
-            </a>
-            {% endfor %}
-        </div>
-        {% else %}
-        <div class="p-12 text-center">
-            <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-            </svg>
-            <p class="text-gray-500">No patients found matching "{{ query }}"</p>
-        </div>
-        {% endif %}
-    </div>
-    {% else %}
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
-        <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+  <!-- Search bar -->
+  <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+    <div class="flex items-center gap-3">
+      <div class="flex-1 relative">
+        <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none"
+             fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
         </svg>
-        <p class="text-gray-500">Enter a search term to find patients</p>
+        <input type="text" x-model="query" @input.debounce.300ms="search()"
+               placeholder="Search by name, patient ID, phone, email, blood group..."
+               class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+               autofocus>
+      </div>
+      <div x-show="loading" class="shrink-0">
+        <svg class="animate-spin w-5 h-5 text-blue-500" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+        </svg>
+      </div>
     </div>
-    {% endif %}
+    <div class="flex items-center gap-2 mt-3 flex-wrap">
+      <span class="text-xs text-gray-500 font-medium">Risk:</span>
+      <template x-for="r in riskOptions" :key="r.value">
+        <button type="button" @click="toggleRisk(r.value)"
+                class="px-3 py-1 rounded-full text-xs font-semibold border transition-all"
+                :class="riskFilter === r.value ? r.activeClass : 'border-gray-200 text-gray-500 hover:border-gray-300'">
+          <span x-text="r.label"></span>
+        </button>
+      </template>
+    </div>
+  </div>
+
+  <div x-show="searched" class="flex items-center text-sm text-gray-500 gap-2">
+    <span x-text="patients.length + ' patient(s) found'"></span>
+  </div>
+
+  <div x-show="patients.length > 0" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+    <template x-for="p in patients" :key="p.id">
+      <a :href="p.detail_url"
+         class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex items-start gap-4 hover:shadow-md hover:border-blue-200 transition-all group">
+        <div class="w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold text-base shrink-0"
+             :class="{
+               'bg-red-500':    p.risk_level === 'critical',
+               'bg-orange-500': p.risk_level === 'high',
+               'bg-yellow-500': p.risk_level === 'medium',
+               'bg-blue-500':   !p.risk_level || p.risk_level === 'low',
+             }"
+             x-text="p.initials"></div>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center justify-between gap-2">
+            <p class="font-semibold text-gray-800 text-sm truncate" x-text="p.name"></p>
+            <span class="px-2 py-0.5 rounded-full text-xs font-semibold shrink-0"
+                  :class="{
+                    'bg-red-100 text-red-700':       p.risk_level === 'critical',
+                    'bg-orange-100 text-orange-700': p.risk_level === 'high',
+                    'bg-yellow-100 text-yellow-700': p.risk_level === 'medium',
+                    'bg-green-100 text-green-700':   !p.risk_level || p.risk_level === 'low',
+                  }"
+                  x-text="p.risk_level ? (p.risk_level.charAt(0).toUpperCase() + p.risk_level.slice(1)) : 'Low'"></span>
+          </div>
+          <div class="flex items-center gap-2 mt-1 text-xs text-gray-500 flex-wrap">
+            <span class="font-mono" x-text="p.patient_number"
+                  :title="p.national_id ? 'National ID: ' + p.national_id : 'Patient No: ' + p.patient_number"></span>
+            <span x-show="p.blood_group" class="px-1.5 py-0.5 bg-red-50 text-red-700 rounded font-semibold" x-text="p.blood_group"></span>
+            <span x-show="p.phone" x-text="p.phone"></span>
+          </div>
+          <p x-show="p.chronic_conditions" class="text-xs text-gray-400 mt-1 truncate" x-text="p.chronic_conditions"></p>
+          <p x-show="p.last_appointment" class="text-xs text-gray-400 mt-0.5">Last visit: <span class="text-gray-600" x-text="p.last_appointment"></span></p>
+        </div>
+        <svg class="w-4 h-4 text-gray-300 group-hover:text-blue-500 shrink-0 mt-1 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+        </svg>
+      </a>
+    </template>
+  </div>
+
+  <div x-show="searched && patients.length === 0 && !loading"
+       class="bg-white rounded-2xl border border-gray-100 shadow-sm p-12 text-center">
+    <svg class="w-14 h-14 mx-auto text-gray-200 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+    </svg>
+    <p class="text-gray-500 font-medium">No patients found</p>
+    <p class="text-gray-400 text-sm mt-1">Try a different search term or clear the risk filter.</p>
+  </div>
+
+  <div x-show="!searched && !loading"
+       class="bg-white rounded-2xl border border-gray-100 shadow-sm p-12 text-center">
+    <svg class="w-14 h-14 mx-auto text-gray-200 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+    </svg>
+    <p class="text-gray-500 font-medium">Start typing to search patients</p>
+    <p class="text-gray-400 text-sm mt-1">Search by name, ID, phone, blood group, or chronic condition.</p>
+  </div>
+
 </div>
+
+<script>
+function patientSearch() {
+  return {
+    query: '{{ query|escapejs }}',
+    riskFilter: '{{ risk_filter|escapejs }}',
+    patients: [],
+    loading: false,
+    searched: {% if query or risk_filter %}true{% else %}false{% endif %},
+    riskOptions: [
+      { value: '',         label: 'All',      activeClass: 'border-blue-500 bg-blue-50 text-blue-700' },
+      { value: 'low',      label: 'Low',      activeClass: 'border-green-500 bg-green-50 text-green-700' },
+      { value: 'medium',   label: 'Medium',   activeClass: 'border-yellow-500 bg-yellow-50 text-yellow-700' },
+      { value: 'high',     label: 'High',     activeClass: 'border-orange-500 bg-orange-50 text-orange-700' },
+      { value: 'critical', label: 'Critical', activeClass: 'border-red-500 bg-red-50 text-red-700' },
+    ],
+    async init() {
+      {% if query or risk_filter %}await this.search();{% endif %}
+    },
+    toggleRisk(val) {
+      this.riskFilter = (this.riskFilter === val) ? '' : val;
+      this.search();
+    },
+    async search() {
+      if (!this.query && !this.riskFilter) { this.patients = []; this.searched = false; return; }
+      this.loading = true; this.searched = true;
+      try {
+        const p = new URLSearchParams({ format: 'json' });
+        if (this.query)      p.set('q', this.query);
+        if (this.riskFilter) p.set('risk', this.riskFilter);
+        const res  = await fetch('/patients/search/?' + p.toString());
+        const data = await res.json();
+        this.patients = data.patients || [];
+      } catch (e) { this.patients = []; }
+      this.loading = false;
+    }
+  };
+}
+</script>
 {% endblock %}

@@ -1165,8 +1165,12 @@ def detect_outbreak_risk():
 
 def get_disease_trend_data(days=30):
     """
-    Return daily diagnosis counts for the top 5 most common diseases over the
-    last `days` days, shaped for a Chart.js multi-line chart.
+    Return daily confirmed-disease counts for the top 5 most common diseases
+    over the last `days` days, shaped for a Chart.js multi-line chart.
+
+    Sources (merged):
+      - TrainingData.confirmed_disease  (doctor-confirmed predictions — updates immediately)
+      - Diagnosis records from medical records (if any)
 
     Returns:
         {
@@ -1175,25 +1179,42 @@ def get_disease_trend_data(days=30):
         }
     """
     try:
-        from apps.medical_records.models import Diagnosis
         from collections import defaultdict
+        from .models import TrainingData
 
         today = timezone.now().date()
         start = today - timedelta(days=days - 1)
 
-        rows = Diagnosis.objects.filter(
-            medical_record__visit_date__gte=start
-        ).values('description', 'medical_record__visit_date')
-
         counts        = defaultdict(lambda: defaultdict(int))
         disease_total = defaultdict(int)
 
-        for row in rows:
-            name = row['description']
-            day  = row['medical_record__visit_date']
-            if day:
+        # Primary source: doctor-confirmed training data entries
+        td_rows = TrainingData.objects.filter(
+            created_at__date__gte=start,
+            confirmed_disease__isnull=False,
+        ).exclude(confirmed_disease='').values('confirmed_disease', 'created_at__date')
+
+        for row in td_rows:
+            name = row['confirmed_disease'].strip()
+            day  = row['created_at__date']
+            if name and day:
                 counts[name][str(day)] += 1
                 disease_total[name]    += 1
+
+        # Secondary source: medical record diagnoses
+        try:
+            from apps.medical_records.models import Diagnosis
+            diag_rows = Diagnosis.objects.filter(
+                medical_record__visit_date__gte=start
+            ).values('description', 'medical_record__visit_date')
+            for row in diag_rows:
+                name = (row['description'] or '').strip()
+                day  = row['medical_record__visit_date']
+                if name and day:
+                    counts[name][str(day)] += 1
+                    disease_total[name]    += 1
+        except Exception:
+            pass
 
         top5   = sorted(disease_total, key=disease_total.get, reverse=True)[:5]
         labels = [str(start + timedelta(days=i)) for i in range(days)]
@@ -1223,3 +1244,129 @@ def get_disease_trend_data(days=30):
         return {'labels': labels, 'datasets': datasets}
     except Exception:
         return {'labels': [], 'datasets': []}
+
+
+# Condition → relevant specializations / department names mapping
+_CONDITION_SPECIALIZATIONS = {
+    # Respiratory
+    'Influenza': ['General Medicine', 'Pulmonology'],
+    'Common Cold': ['General Medicine'],
+    'COVID-19': ['General Medicine', 'Pulmonology', 'Infectious Disease'],
+    'Pneumonia': ['Pulmonology', 'General Medicine'],
+    'Tuberculosis': ['Pulmonology', 'Infectious Disease'],
+    'Asthma': ['Pulmonology'],
+    'Bronchitis': ['Pulmonology', 'General Medicine'],
+    'COPD': ['Pulmonology'],
+    # Cardiovascular
+    'Hypertension': ['Cardiology', 'General Medicine'],
+    'Heart Failure': ['Cardiology'],
+    'Angina Pectoris': ['Cardiology'],
+    'Myocardial Infarction': ['Cardiology'],
+    'Arrhythmia': ['Cardiology'],
+    # Digestive / GI
+    'Gastroenteritis': ['General Medicine', 'Gastroenterology'],
+    'Gastritis': ['Gastroenterology', 'General Medicine'],
+    'Peptic Ulcer': ['Gastroenterology'],
+    'Appendicitis': ['Surgery', 'General Medicine'],
+    'Liver Disease': ['Gastroenterology', 'Hepatology'],
+    'Pancreatitis': ['Gastroenterology', 'Surgery'],
+    # Endocrine / Metabolic
+    'Diabetes Mellitus Type 1': ['Endocrinology', 'General Medicine'],
+    'Diabetes Mellitus Type 2': ['Endocrinology', 'General Medicine'],
+    'Hypothyroidism': ['Endocrinology'],
+    'Hyperthyroidism': ['Endocrinology'],
+    # Urinary / Renal
+    'Urinary Tract Infection': ['Urology', 'General Medicine'],
+    'Kidney Stones': ['Urology', 'Nephrology'],
+    'Chronic Kidney Disease': ['Nephrology'],
+    # Neurological
+    'Migraine': ['Neurology', 'General Medicine'],
+    'Tension Headache': ['Neurology', 'General Medicine'],
+    'Epilepsy': ['Neurology'],
+    'Stroke': ['Neurology'],
+    'Meningitis': ['Neurology', 'Infectious Disease'],
+    'Vertigo': ['Neurology', 'ENT'],
+    # Infectious
+    'Malaria': ['Infectious Disease', 'General Medicine'],
+    'Typhoid Fever': ['Infectious Disease', 'General Medicine'],
+    'Dengue Fever': ['Infectious Disease', 'General Medicine'],
+    'HIV/AIDS': ['Infectious Disease'],
+    # Musculoskeletal
+    'Arthritis': ['Rheumatology', 'Orthopedics'],
+    'Gout': ['Rheumatology', 'General Medicine'],
+    'Back Pain': ['Orthopedics', 'General Medicine'],
+    'Fracture': ['Orthopedics'],
+    # Mental Health
+    'Depression': ['Psychiatry', 'Psychology'],
+    'Anxiety': ['Psychiatry', 'Psychology'],
+    # Skin
+    'Skin Rash': ['Dermatology', 'General Medicine'],
+    'Eczema': ['Dermatology'],
+    'Psoriasis': ['Dermatology'],
+    'Cellulitis': ['Dermatology', 'General Medicine'],
+    # ENT
+    'Sinusitis': ['ENT', 'General Medicine'],
+    'Tonsillitis': ['ENT', 'General Medicine'],
+    'Otitis Media': ['ENT', 'General Medicine'],
+    # Reproductive
+    'Anemia': ['Hematology', 'General Medicine'],
+}
+
+
+def suggest_doctors_for_condition(condition_name):
+    """
+    Suggest available doctors for a given AI-predicted condition.
+
+    Returns list of dicts with doctor info and today's availability/load.
+    Falls back to General Medicine doctors if no specialty match found.
+    """
+    try:
+        from apps.accounts.models import DoctorProfile, DoctorSchedule, User
+        from apps.appointments.models import Appointment
+
+        today = timezone.now().date()
+        day_of_week = today.weekday()
+
+        # Find matching specializations
+        specializations = _CONDITION_SPECIALIZATIONS.get(condition_name, ['General Medicine'])
+
+        # Query doctors whose department name matches any specialization
+        profiles = DoctorProfile.objects.filter(
+            department__name__in=specializations,
+            user__is_active=True
+        ).select_related('user', 'department')
+
+        # Fallback: if no match, get General Medicine or first available doctors
+        if not profiles.exists():
+            profiles = DoctorProfile.objects.filter(
+                user__is_active=True
+            ).select_related('user', 'department')[:5]
+
+        result = []
+        for p in profiles[:6]:
+            schedule = DoctorSchedule.objects.filter(
+                doctor=p.user, day_of_week=day_of_week, is_available=True
+            ).first()
+            today_count = Appointment.objects.filter(
+                doctor=p.user, scheduled_date=today
+            ).exclude(status__in=['cancelled', 'no_show']).count()
+            max_pts = p.max_patients_per_day or 30
+            load_pct = min(round(today_count / max_pts * 100), 100)
+
+            result.append({
+                'doctor_id': p.user.id,
+                'doctor_name': f"Dr. {p.user.get_full_name()}",
+                'specialization': p.specialization,
+                'department': p.department.name if p.department else '',
+                'available_today': schedule is not None,
+                'today_bookings': today_count,
+                'max_patients': max_pts,
+                'load_pct': load_pct,
+            })
+
+        # Sort: available first, then by load ascending
+        result.sort(key=lambda d: (not d['available_today'], d['load_pct']))
+        return result
+
+    except Exception as e:
+        return []

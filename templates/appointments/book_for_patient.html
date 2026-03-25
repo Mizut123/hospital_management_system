@@ -62,7 +62,7 @@
             <!-- Department Selection -->
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Department</label>
-                <select name="department" x-model="selectedDepartment"
+                <select name="department" x-model="selectedDepartment" @change="loadDoctors()"
                     class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                     <option value="">All Departments</option>
                     {% for dept in departments %}
@@ -74,15 +74,16 @@
             <!-- Doctor Selection -->
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Select Doctor <span class="text-red-500">*</span></label>
+                <div x-show="doctorLoading" class="py-2 text-sm text-gray-400">Loading doctors…</div>
                 <select name="doctor" required x-model="selectedDoctor" @change="fetchSlots()"
+                    x-show="!doctorLoading"
                     class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                     <option value="">Choose a doctor</option>
-                    {% for doctor in doctors %}
-                    <option value="{{ doctor.id }}">
-                        Dr. {{ doctor.get_full_name }}
-                        {% if doctor.doctor_profile %}({{ doctor.doctor_profile.specialization }}){% endif %}
-                    </option>
-                    {% endfor %}
+                    <template x-for="doc in doctors" :key="doc.id">
+                        <option :value="doc.id"
+                                x-text="doc.name + (doc.specialization ? ' (' + doc.specialization + ')' : '') + (doc.available_today ? ' ✓' : '')">
+                        </option>
+                    </template>
                 </select>
             </div>
 
@@ -143,8 +144,26 @@ function appointmentForm() {
         selectedDepartment: '',
         selectedDoctor: '',
         selectedDate: '',
+        doctors: [],
         slots: [],
         loading: false,
+        doctorLoading: false,
+
+        async init() { await this.loadDoctors(); },
+
+        async loadDoctors() {
+            this.doctorLoading = true;
+            this.selectedDoctor = '';
+            this.slots = [];
+            try {
+                const url = '{% url "appointments:doctors_by_dept" %}' +
+                            (this.selectedDepartment ? '?dept_id=' + this.selectedDepartment : '');
+                const res  = await fetch(url);
+                const data = await res.json();
+                this.doctors = data.doctors || [];
+            } catch (e) { this.doctors = []; }
+            this.doctorLoading = false;
+        },
 
         async fetchSlots() {
             if (!this.selectedDoctor || !this.selectedDate) return;

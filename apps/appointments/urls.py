@@ -18,4 +18,5 @@ urlpatterns = [
     path('doctor-queue/', views.doctor_queue_view, name='doctor_queue'),
     path('schedule/', views.schedule_view, name='schedule'),
     path('api/slots/', views.get_available_slots, name='get_slots'),
+    path('api/doctors-by-dept/', views.doctors_by_department_api, name='doctors_by_dept'),
 ]
